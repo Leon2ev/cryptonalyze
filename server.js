@@ -1,3 +1,6 @@
+//Dotenv.config
+require('dotenv').config()
+
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
@@ -6,9 +9,6 @@ const port = process.env.PORT;
 server.listen(port, function(){
   console.log(`Server running on port: ${port}`);
 });
-
-//Dotenv.config
-require('dotenv').config()
 
 //Connection to Binance
 const api = require('binance');
@@ -74,7 +74,7 @@ function getKlines(){
         limit: 7
       })
       .then(data => {
-        data.forEach(day => {day['symbol'] = btcPairs[i]})
+        data.forEach(item => {item['symbol'] = btcPairs[i]})
         createCustomObject(data)
       })
       .catch(err => {console.error(err)});
