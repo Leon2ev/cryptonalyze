@@ -1,5 +1,3 @@
 node_modules/
-.eslintrc
-.eslintignore
 .DS_Store
 .env
