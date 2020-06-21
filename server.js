@@ -151,7 +151,7 @@ function startStream(){
     getStreams()
   } else {
     console.log("Data not ready")
-    setTimeout(() => {startStream()}, 500)
+    setTimeout(() => {startStream()}, 1000)
   }
 }
 
