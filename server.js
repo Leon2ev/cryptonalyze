@@ -6,7 +6,7 @@ const app = express();
 const server = require('http').createServer(app);
 const port = process.env.PORT;
 
-server.listen(port, function(){
+server.listen(port, () => {
   console.log(`Server running on port: ${port}`);
 });
 
@@ -41,7 +41,7 @@ let bnbPairs = [];
 let trxPairs = [];
 let xrpPairs = [];
 let usdtPairs = [];
-function pushEachPairToArray(data){
+const pushEachPairToArray = data => {
   console.log("Group by market")
   for(let i = 0; i < data.length; i++){
     if(data[i].symbol.slice(-3) === 'BTC') {
@@ -64,7 +64,7 @@ function pushEachPairToArray(data){
 
 //Request klines for choosen period
 let firstRun = true
-function getKlines(){
+const getKlines = () => {
   console.log("Get klines")
   for(let i = 0; i < btcPairs.length; i++){
     binanceRest
@@ -87,7 +87,7 @@ let tickerStream
 let btcStreams = []
 let obj
 let customObjectArray = []
-function createCustomObject(data) {
+const createCustomObject = data => {
 
   let weekVolumeQuote = 0;
   let weekVolume = 0;
@@ -120,7 +120,7 @@ function createCustomObject(data) {
 
 //Check if code running first time or not
 let startStreamDone = false
-function firstTimeRun(){
+const firstTimeRun = () => {
   if(firstRun === true){
     customObjectArray.push(obj)
     btcStreams.push(tradeStream)
@@ -135,7 +135,7 @@ function firstTimeRun(){
 }
 
 //Update old array with new values
-function updateCustomObjectArray(){
+const updateCustomObjectArray = () => {
   customObjectArray.forEach(item => {
     if(item.symbol === obj.symbol){
       item = obj
@@ -144,7 +144,7 @@ function updateCustomObjectArray(){
 }
 
 //Start stream if data is ready
-function startStream(){
+const startStream = () => {
   startStreamDone = true
   if(btcPairs.length === customObjectArray.length){
     console.log("Start websocket")
@@ -168,7 +168,7 @@ let tickerData
 let tradeData
 let total
 let priceDifference
-function getStreams(){
+const getStreams = () => {
   console.log("Get stream")
   firstRun = false
   binanceWS.onCombinedStream(btcStreams, streamEvent => {
