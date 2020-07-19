@@ -34,6 +34,17 @@ binanceRest.allPrices()
   .then(data => {pushEachPairToArray(data)})
   .catch(err => {console.error(err)})
 
+//Check if new 15min kline is open
+let newKlineTime
+binanceWS.onKline('BNBBTC', '15m', data => {
+  if (newKlineTime === undefined) {
+    newKlineTime = data.kline.startTime;
+  } else if (newKlineTime < data.kline.startTime) {
+    newKlineTime = data.kline.startTime
+    getKlines()
+  }
+});
+
 //Group all pairs by market
 let btcPairs = [];
 let ethPairs = [];
@@ -59,7 +70,6 @@ const pushEachPairToArray = data => {
     }
   }
   getKlines()
-  setInterval(getKlines, 500000)
 }
 
 //Request klines for choosen pair and period
@@ -83,7 +93,6 @@ const getKlines = () => {
 //Create custom object
 let tradeStream
 let tickerStream
-let btcStreams = []
 let obj
 const createCustomObject = data => {
 
@@ -120,6 +129,7 @@ const createCustomObject = data => {
 let firstRun = true
 let startStreamDone = false
 let customObjectArray = []
+let btcStreams = []
 const firstTimeRun = () => {
   if (firstRun === true) {
     customObjectArray.push(obj)
