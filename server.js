@@ -6,6 +6,7 @@ const app = express();
 const server = require('http').createServer(app);
 const api = require('binance');
 const TelegramBot = require('node-telegram-bot-api');
+const marketFilter = require('./utils/market-filter')
 const port = process.env.PORT;
 
 server.listen(port, () => {
@@ -50,83 +51,19 @@ binanceWS.onKline('BNBBTC', '15m', data => {
 });
 
 //Group all pairs by market
-let btcPairs = [];
-let ethPairs = [];
-let bnbPairs = [];
-let trxPairs = [];
-let xrpPairs = [];
-let usdtPairs = [];
-let busdPairs = [];
-let bidrPairs = [];
-let uahPairs = [];
-let gbpPairs = [];
-let idrtPairs = [];
-let bkrwPairs = [];
-let zarPairs = [];
-let eurPairs = [];
-let rubPairs = [];
-let tryPairs = [];
-let paxPairs = [];
-let usdPairs = [];
-let usdcPairs = [];
-let usdsPairs = [];
-let ngnPairs = [];
+let btcPairs
 const pushEachPairToArray = async () => {
   try {
     const data = await getAllPrices()
+    const market = await marketFilter(data)
+    btcPairs = market.btcPairs
     console.log("Group by market")
-    for (let i = 0; i < data.length; i++) {
-      if (data[i].symbol.slice(-3) === 'BTC') {
-        btcPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-3) === 'ETH') {
-        ethPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-3) === 'BNB') {
-        bnbPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-3) === 'TRX') {
-        trxPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-3) === 'XRP') {
-        xrpPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-4) === 'USDT') {
-        usdtPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-4) === 'BUSD') {
-        busdPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-4) === 'BIDR') {
-        bidrPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-3) === 'UAH') {
-        uahPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-3) === 'GBP') {
-        gbpPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-4) === 'IDRT') {
-        idrtPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-4) === 'BKRW') {
-        bkrwPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-3) === 'ZAR') {
-        zarPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-3) === 'EUR') {
-        eurPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-3) === 'RUB') {
-        rubPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-3) === 'TRY') {
-        tryPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-3) === 'PAX') {
-        paxPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-3) === 'USD') {
-        usdPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-4) === 'USDC') {
-        usdcPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-4) === 'USDS') {
-        usdsPairs.push(data[i].symbol);
-      } else if (data[i].symbol.slice(-3) === 'NGN') {
-        ngnPairs.push(data[i].symbol);
-      } else {
-        console.log(`New market is added ${data[i].symbol}`)
-      }
-    }
   } catch (e) {
     console.error('No data is received', e)
   }
-  getKlines()
+  return getKlines()
 }
+
 pushEachPairToArray()
 //Request klines for choosen pair and period
 const getKlines = () => {
