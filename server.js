@@ -30,9 +30,13 @@ const chat_id = process.env.TELEGRAM_CHAT_ID;
 const bot = new TelegramBot(token, {polling: true});
 
 //Get prices of all pairs from Binance
-binanceRest.allPrices()
-  .then(data => {pushEachPairToArray(data)})
-  .catch(err => {console.error(err)})
+const getAllPrices = async () => {
+  try {
+    return await binanceRest.allPrices()
+  } catch (e) {
+    console.error('Missing Connection with Binance', e)
+  }
+}
 
 //Check if new 15min kline is open
 let newKlineTime
@@ -52,26 +56,78 @@ let bnbPairs = [];
 let trxPairs = [];
 let xrpPairs = [];
 let usdtPairs = [];
-const pushEachPairToArray = data => {
-  console.log("Group by market")
-  for (let i = 0; i < data.length; i++) {
-    if (data[i].symbol.slice(-3) === 'BTC') {
-      btcPairs.push(data[i].symbol);
-    } else if(data[i].symbol.slice(-3) === 'ETH') {
-      ethPairs.push(data[i].symbol);
-    } else if(data[i].symbol.slice(-3) === 'BNB') {
-      bnbPairs.push(data[i].symbol);
-    } else if(data[i].symbol.slice(-3) === 'TRX') {
-      trxPairs.push(data[i].symbol);
-    } else if(data[i].symbol.slice(-3) === 'XRP') {
-      xrpPairs.push(data[i].symbol);
-    } else if(data[i].symbol.slice(-4) === 'USDT') {
-      usdtPairs.push(data[i].symbol);
+let busdPairs = [];
+let bidrPairs = [];
+let uahPairs = [];
+let gbpPairs = [];
+let idrtPairs = [];
+let bkrwPairs = [];
+let zarPairs = [];
+let eurPairs = [];
+let rubPairs = [];
+let tryPairs = [];
+let paxPairs = [];
+let usdPairs = [];
+let usdcPairs = [];
+let usdsPairs = [];
+let ngnPairs = [];
+const pushEachPairToArray = async () => {
+  try {
+    const data = await getAllPrices()
+    console.log("Group by market")
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].symbol.slice(-3) === 'BTC') {
+        btcPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-3) === 'ETH') {
+        ethPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-3) === 'BNB') {
+        bnbPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-3) === 'TRX') {
+        trxPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-3) === 'XRP') {
+        xrpPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-4) === 'USDT') {
+        usdtPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-4) === 'BUSD') {
+        busdPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-4) === 'BIDR') {
+        bidrPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-3) === 'UAH') {
+        uahPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-3) === 'GBP') {
+        gbpPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-4) === 'IDRT') {
+        idrtPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-4) === 'BKRW') {
+        bkrwPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-3) === 'ZAR') {
+        zarPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-3) === 'EUR') {
+        eurPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-3) === 'RUB') {
+        rubPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-3) === 'TRY') {
+        tryPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-3) === 'PAX') {
+        paxPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-3) === 'USD') {
+        usdPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-4) === 'USDC') {
+        usdcPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-4) === 'USDS') {
+        usdsPairs.push(data[i].symbol);
+      } else if (data[i].symbol.slice(-3) === 'NGN') {
+        ngnPairs.push(data[i].symbol);
+      } else {
+        console.log(`New market is added ${data[i].symbol}`)
+      }
     }
+  } catch (e) {
+    console.error('No data is received', e)
   }
   getKlines()
 }
-
+pushEachPairToArray()
 //Request klines for choosen pair and period
 const getKlines = () => {
   console.log("Get klines")
