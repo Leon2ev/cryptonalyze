@@ -30,7 +30,7 @@ const token = process.env.TELEGRAM_TOKEN;
 const chat_id = process.env.TELEGRAM_CHAT_ID;
 const bot = new TelegramBot(token, {polling: true});
 
-//Get prices of all pairs from Binance
+//Get prices for all pairs from Binance
 const getAllPrices = async () => {
   try {
     return await binanceRest.allPrices()
@@ -39,7 +39,10 @@ const getAllPrices = async () => {
   }
 }
 
-//Check if new 15min kline is open
+/**
+Check if new 15min kline is open.
+When new kline is open sends request to update data.
+*/
 let newKlineTime
 binanceWS.onKline('BNBBTC', '15m', data => {
   if (newKlineTime === undefined) {
@@ -50,7 +53,7 @@ binanceWS.onKline('BNBBTC', '15m', data => {
   }
 });
 
-//Group all pairs by market
+//Receive all trading pairs. Filter and store them by market.
 let btcPairs
 const pushEachPairToArray = async () => {
   try {
@@ -61,11 +64,15 @@ const pushEachPairToArray = async () => {
   } catch (e) {
     console.error('No data is received', e)
   }
-  return getKlines()
+  getKlines()
 }
 
 pushEachPairToArray()
-//Request klines for choosen pair and period
+
+/**
+Request kline object for each pair on the selected market and period.
+Add symbol to each object.
+*/
 const getKlines = () => {
   console.log("Get klines")
   for (let i = 0; i < btcPairs.length; i++) {
@@ -106,10 +113,10 @@ const createCustomObject = data => {
     balance = weekTakerVolumeQuote - (weekVolumeQuote - weekTakerVolumeQuote)
     tradeStream = streams.trade(symbol)
     tickerStream = streams.ticker(symbol)
-    obj = {'symbol': symbol,
-          'coeficient': coeficient,
-          'tradeStream': tradeStream,
-          'tickerStream': tickerStream,
+    obj = {symbol,
+          coeficient,
+          tradeStream,
+          tickerStream,
           'weekVolumeQuote': weekVolumeQuote.toFixed(2),
           'weekAverage': weekAverage.toFixed(8),
           'balance': balance.toFixed(2)
@@ -126,8 +133,7 @@ let btcStreams = []
 const firstTimeRun = () => {
   if (firstRun === true) {
     customObjectArray.push(obj)
-    btcStreams.push(tradeStream)
-    btcStreams.push(tickerStream)
+    btcStreams.push(tradeStream, tickerStream)
     if (startStreamDone === false) {
       console.log("First run")
       startStream()
@@ -154,7 +160,7 @@ const startStream = () => {
     getStreams()
   } else {
     console.log("Data not ready")
-    setTimeout(() => {startStream()}, 1000)
+    setTimeout(() => { startStream() }, 1000)
   }
 }
 
@@ -190,7 +196,7 @@ const getStreams = () => {
           priceDifference = (tradeData.price - customObjectArray[i].weekAverage)
                             / tradeData.price * 100
         }
-        if (total > customObjectArray[i].coeficient && priceDifference <= 5){
+        if (total > customObjectArray[i].coeficient > 1 && priceDifference <= 5){
           if (tradeData.maker === false) {
             const buyMsgTemplate =
             `${upGraph} #${tradeData.symbol} ${tick}BUY\n`+
