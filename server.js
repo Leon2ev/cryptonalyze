@@ -170,7 +170,7 @@ const startStream = () => {
 const fetchData = (stream, array) => {
   array.forEach(item => {
     if (item.symbol === stream.symbol) {
-      item['dayVolume'] = stream.quoteAssetVolume
+      item['dayVolume'] = parseFloat(stream.quoteAssetVolume).toFixed(2)
     }
   })
 }
@@ -180,7 +180,7 @@ const getStreams = () => {
   binanceWS.onCombinedStream(tickerStreams, streamEvent => {
     fetchData(streamEvent.data, customObjectArray)
   })
-  binanceWS.onCombinedStream(tickerStreams, streamEvent => {
-    fetchData(streamEvent.data)
-  })
+  // binanceWS.onCombinedStream(tickerStreams, streamEvent => {
+  //   fetchData(streamEvent.data)
+  // })
 }
