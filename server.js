@@ -44,7 +44,7 @@ Check if new 15min kline is open.
 When new kline is open sends request to update data.
 */
 let newKlineTime
-binanceWS.onKline('BNBBTC', '15m', data => {
+binanceWS.onKline('BNBBTC', '1m', data => {
   if (newKlineTime === undefined) {
     newKlineTime = data.kline.startTime;
   } else if (newKlineTime < data.kline.startTime) {
@@ -59,8 +59,8 @@ const pushEachPairToArray = async () => {
   try {
     const data = await getAllPrices()
     const market = await marketFilter(data)
-    btcPairs = market.btcPairs
-    console.log("Group by market")
+    btcPairs = [market.btcPairs[0], market.btcPairs[1]]
+    console.log('Group by market')
   } catch (e) {
     console.error('No data is received', e)
   }
@@ -74,12 +74,12 @@ Request kline object for each pair on the selected market and period.
 Add symbol to each object.
 */
 const getKlines = () => {
-  console.log("Get klines")
+  console.log('Get klines')
   for (let i = 0; i < btcPairs.length; i++) {
     binanceRest
       .klines({
         symbol: btcPairs[i],
-        interval: "1d",
+        interval: '1d',
         limit: 7
       })
       .then(data => {
@@ -129,13 +129,15 @@ const createCustomObject = data => {
 let firstRun = true
 let startStreamDone = false
 let customObjectArray = []
-let btcStreams = []
+let tradeStreams = []
+let tickerStreams = []
 const firstTimeRun = () => {
   if (firstRun === true) {
     customObjectArray.push(obj)
-    btcStreams.push(tradeStream, tickerStream)
+    tradeStreams.push(tradeStream)
+    tickerStreams.push(tickerStream)
     if (startStreamDone === false) {
-      console.log("First run")
+      console.log('First run')
       startStream()
     }
   } else {
@@ -156,68 +158,29 @@ const updateCustomObjectArray = () => {
 const startStream = () => {
   startStreamDone = true
   if (btcPairs.length === customObjectArray.length) {
-    console.log("Start websocket")
+    console.log('Start websocket')
     getStreams()
   } else {
-    console.log("Data not ready")
+    console.log('Data not ready')
     setTimeout(() => { startStream() }, 1000)
   }
 }
 
-//Icons for telegram message
-const upGraph = String.fromCodePoint(0x1F4C8);
-const downGraph = String.fromCodePoint(0x1F4C9);
-const tick = String.fromCodePoint(0x2705);
-const cross = String.fromCodePoint(0x274C);
-const price = String.fromCodePoint(0x1F4B2);
-
-//Get 24h stream and real time trades stream. Compare stream data with API data.
-//Send signals to Telergam group
-let tickerData
-let tradeData
-let total
-let priceDifference
-const getStreams = () => {
-  console.log("Get stream")
-  firstRun = false
-  binanceWS.onCombinedStream(btcStreams, streamEvent => {
-    for (let i = 0; i < customObjectArray.length; i++) {
-      if (streamEvent.stream === customObjectArray[i].tickerStream) {
-        tickerData = streamEvent.data
-        if (tickerData.symbol === customObjectArray[i].symbol) {
-          customObjectArray[i]['dayVolume'] = parseFloat(tickerData.quoteAssetVolume)
-                                                .toFixed(2)
-        }
-      }
-      if (streamEvent.stream === customObjectArray[i].tradeStream) {
-        tradeData = streamEvent.data
-        if (tradeData.symbol === customObjectArray[i].symbol) {
-          total = tradeData.price * tradeData.quantity
-          priceDifference = (tradeData.price - customObjectArray[i].weekAverage)
-                            / tradeData.price * 100
-        }
-        if (total > customObjectArray[i].coeficient > 1 && priceDifference <= 5){
-          if (tradeData.maker === false) {
-            const buyMsgTemplate =
-            `${upGraph} #${tradeData.symbol} ${tick}BUY\n`+
-            `BTC: ${total.toFixed(2)}\n`+
-            `${price}Price: ${tradeData.price}\n`+
-            `${priceDifference.toFixed(2)}% of ${customObjectArray[i].weekAverage}\n`+
-            `Volume(24h): ${customObjectArray[i].dayVolume} BTC\n`+
-            `Balance(7d): ${customObjectArray[i].balance} BTC`
-            bot.sendMessage(chat_id, buyMsgTemplate);
-          } else if (tradeData.maker === true) {
-            const sellMsgTemplate =
-            `${downGraph} #${tradeData.symbol} ${cross}SELL\n`+
-            `BTC: ${total.toFixed(2)}\n`+
-            `${price}Price: ${tradeData.price}\n`+
-            `${priceDifference.toFixed(2)}% of ${customObjectArray[i].weekAverage}\n`+
-            `Volume(24h): ${customObjectArray[i].dayVolume} BTC\n`+
-            `Balance(7d): ${customObjectArray[i].balance} BTC`
-            bot.sendMessage(chat_id, sellMsgTemplate);
-          }
-        }
-      }
+//Add data from a stream to an object with the same symbol.
+const fetchData = (stream, array) => {
+  array.forEach(item => {
+    if (item.symbol === stream.symbol) {
+      item['dayVolume'] = stream.quoteAssetVolume
     }
-  });
+  })
+}
+
+//Run ticker and trade stream for each market pair.
+const getStreams = () => {
+  binanceWS.onCombinedStream(tickerStreams, streamEvent => {
+    fetchData(streamEvent.data, customObjectArray)
+  })
+  binanceWS.onCombinedStream(tickerStreams, streamEvent => {
+    fetchData(streamEvent.data)
+  })
 }
