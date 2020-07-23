@@ -55,11 +55,13 @@ binanceWS.onKline('BNBBTC', '1m', data => {
 
 //Receive all trading pairs. Filter and store them by market.
 let btcPairs
+let tradeStreams
 const pushEachPairToArray = async () => {
   try {
     const data = await getAllPrices()
     const market = await marketFilter(data)
     btcPairs = market.btcPairs
+    tradeStreams = tradeStreamsArray(btcPairs)
     console.log('Group by market')
   } catch (e) {
     console.error('No data is received', e)
@@ -90,16 +92,26 @@ const getKlines = () => {
   }
 }
 
-//Create custom object
-let tradeStream
-let obj
-let tradeStreams = []
-const createCustomObject = data => {
+//Create array of trade streams from market for use in @onCombinedStream
+const tradeStreamsArray = (market) => {
+  const streamsArray = []
+  let stream
+  market.forEach(pair => {
+    stream = streams.trade(pair)
+    streamsArray.push(stream)
+  })
+  return streamsArray
+}
 
+//Create custom object
+
+
+let object
+const createCustomObject = data => {
   let weekVolumeQuote = 0;
   let weekVolume = 0;
   let weekTakerVolumeQuote = 0;
-  let weekAverage = 0;
+  let weekAveragePrice = 0;
   let coeficient = 0;
   let balance = 0;
 
@@ -108,19 +120,17 @@ const createCustomObject = data => {
     weekVolumeQuote += parseFloat(data[i].quoteAssetVolume)
     weekVolume += parseFloat(data[i].volume)
     weekTakerVolumeQuote += parseFloat(data[i].takerQuoteAssetVolume)
-    weekAverage = weekVolumeQuote / weekVolume
+    weekAveragePrice = weekVolumeQuote / weekVolume
     coeficient = weekVolumeQuote / 672
     balance = weekTakerVolumeQuote - (weekVolumeQuote - weekTakerVolumeQuote)
-    tradeStream = streams.trade(symbol)
-    obj = {symbol,
-          coeficient,
-          'weekVolumeQuote': weekVolumeQuote.toFixed(2),
-          'weekAverage': weekAverage.toFixed(8),
-          'balance': balance.toFixed(2)
-          }
+    object = {symbol,
+              coeficient,
+              'weekVolumeQuote': weekVolumeQuote.toFixed(2),
+              'weekAveragePrice': weekAveragePrice.toFixed(8),
+              'balance': balance.toFixed(2)
+              }
   }
-  tradeStreams.push(tradeStream)
-  addObjectToArray()
+  addObjectToArray(object)
 }
 
 /**
@@ -130,8 +140,8 @@ received, add data to market array and empy buffer.
 let bufferMarketArray = []
 let marketsArray = []
 let streamsStarted
-const addObjectToArray = () => {
-  bufferMarketArray.push(obj)
+const addObjectToArray = (object) => {
+  bufferMarketArray.push(object)
   if (btcPairs.length === bufferMarketArray.length) {
     marketsArray = [...bufferMarketArray]
     bufferMarketArray = []
