@@ -59,7 +59,7 @@ const pushEachPairToArray = async () => {
   try {
     const data = await getAllPrices()
     const market = await marketFilter(data)
-    btcPairs = [market.btcPairs[0], market.btcPairs[1]]
+    btcPairs = market.btcPairs
     console.log('Group by market')
   } catch (e) {
     console.error('No data is received', e)
@@ -92,8 +92,8 @@ const getKlines = () => {
 
 //Create custom object
 let tradeStream
-let tickerStream
 let obj
+let tradeStreams = []
 const createCustomObject = data => {
 
   let weekVolumeQuote = 0;
@@ -112,75 +112,92 @@ const createCustomObject = data => {
     coeficient = weekVolumeQuote / 672
     balance = weekTakerVolumeQuote - (weekVolumeQuote - weekTakerVolumeQuote)
     tradeStream = streams.trade(symbol)
-    tickerStream = streams.ticker(symbol)
     obj = {symbol,
           coeficient,
-          tradeStream,
-          tickerStream,
           'weekVolumeQuote': weekVolumeQuote.toFixed(2),
           'weekAverage': weekAverage.toFixed(8),
           'balance': balance.toFixed(2)
           }
   }
-  firstTimeRun()
+  tradeStreams.push(tradeStream)
+  addObjectToArray()
 }
 
-//Check if code running first time or not
-let firstRun = true
-let startStreamDone = false
-let customObjectArray = []
-let tradeStreams = []
-let tickerStreams = []
-const firstTimeRun = () => {
-  if (firstRun === true) {
-    customObjectArray.push(obj)
-    tradeStreams.push(tradeStream)
-    tickerStreams.push(tickerStream)
-    if (startStreamDone === false) {
-      console.log('First run')
-      startStream()
+/**
+Buffer array get custom trading pair objects one by one. When all objects
+received, add data to market array and empy buffer.
+*/
+let bufferMarketArray = []
+let marketsArray = []
+let streamsStarted
+const addObjectToArray = () => {
+  bufferMarketArray.push(obj)
+  if (btcPairs.length === bufferMarketArray.length) {
+    marketsArray = [...bufferMarketArray]
+    bufferMarketArray = []
+    if (!streamsStarted) {
+      streamsStarted = true
+      startStreams(filterStreamData)
     }
-  } else {
-    updateCustomObjectArray()
   }
 }
 
-//Update old array with new values
-const updateCustomObjectArray = () => {
-  customObjectArray.forEach(item => {
-    if (item.symbol === obj.symbol) {
-      item = obj
-    }
+//Run trade streams for each pair from selected market.
+const startStreams = (callback) => {
+  console.log('Streams are started')
+  binanceWS.onCombinedStream(tradeStreams, streamEvent => {
+    callback(streamEvent.data)
   })
 }
 
-//Start stream if data is ready
-const startStream = () => {
-  startStreamDone = true
-  if (btcPairs.length === customObjectArray.length) {
-    console.log('Start websocket')
-    getStreams()
-  } else {
-    console.log('Data not ready')
-    setTimeout(() => { startStream() }, 1000)
-  }
-}
-
-//Add data from a stream to an object with the same symbol.
-const fetchData = (stream, array) => {
+//Filter stream data. For filter using one week historic data.
+const filterStreamData = (stream) => {
+  const array = marketsArray
   array.forEach(item => {
     if (item.symbol === stream.symbol) {
-      item['dayVolume'] = parseFloat(stream.quoteAssetVolume).toFixed(2)
+      const tradeCost = stream.price * stream.quantity
+      stream.balance = item.balance
+      if (tradeCost > 0.4) {
+        console.log(stream)
+      }
     }
   })
 }
 
-//Run ticker and trade stream for each market pair.
-const getStreams = () => {
-  binanceWS.onCombinedStream(tickerStreams, streamEvent => {
-    fetchData(streamEvent.data, customObjectArray)
-  })
-  // binanceWS.onCombinedStream(tickerStreams, streamEvent => {
-  //   fetchData(streamEvent.data)
-  // })
-}
+//Icons for telegram message
+const upGraph = String.fromCodePoint(0x1F4C8);
+const downGraph = String.fromCodePoint(0x1F4C9);
+const tick = String.fromCodePoint(0x2705);
+const cross = String.fromCodePoint(0x274C);
+const price = String.fromCodePoint(0x1F4B2);
+
+
+      // if (streamEvent.stream === customObjectArray[i].tradeStream) {
+      //   tradeData = streamEvent.data
+      //   if (tradeData.symbol === customObjectArray[i].symbol) {
+      //     total = tradeData.price * tradeData.quantity
+      //     priceDifference = (tradeData.price - customObjectArray[i].weekAverage)
+      //                       / tradeData.price * 100
+      //   }
+      //   if (total > customObjectArray[i].coeficient > 1 && priceDifference <= 5){
+      //     if (tradeData.maker === false) {
+      //       const buyMsgTemplate =
+      //       `${upGraph} #${tradeData.symbol} ${tick}BUY\n`+
+      //       `BTC: ${total.toFixed(2)}\n`+
+      //       `${price}Price: ${tradeData.price}\n`+
+      //       `${priceDifference.toFixed(2)}% of ${customObjectArray[i].weekAverage}\n`+
+      //       `Volume(24h): ${customObjectArray[i].dayVolume} BTC\n`+
+      //       `Balance(7d): ${customObjectArray[i].balance} BTC`
+      //       bot.sendMessage(chat_id, buyMsgTemplate);
+      //     } else if (tradeData.maker === true) {
+      //       const sellMsgTemplate =
+      //       `${downGraph} #${tradeData.symbol} ${cross}SELL\n`+
+      //       `BTC: ${total.toFixed(2)}\n`+
+      //       `${price}Price: ${tradeData.price}\n`+
+      //       `${priceDifference.toFixed(2)}% of ${customObjectArray[i].weekAverage}\n`+
+      //       `Volume(24h): ${customObjectArray[i].dayVolume} BTC\n`+
+      //       `Balance(7d): ${customObjectArray[i].balance} BTC`
+      //       bot.sendMessage(chat_id, sellMsgTemplate);
+      //     }
+      //   }
+      // }
