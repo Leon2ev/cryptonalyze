@@ -5,8 +5,8 @@ const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
 const api = require('binance');
-const TelegramBot = require('node-telegram-bot-api');
 const marketFilter = require('./utils/market-filter')
+const sendTelegramMessage = require('./utils/telegram')
 const port = process.env.PORT;
 
 server.listen(port, () => {
@@ -24,11 +24,6 @@ const binanceRest = new api.BinanceRest({
   requestOptions: {}
 });
 const streams = binanceWS.streams;
-
-//Connection to Telegram API
-const token = process.env.TELEGRAM_TOKEN;
-const chat_id = process.env.TELEGRAM_CHAT_ID;
-const bot = new TelegramBot(token, {polling: true});
 
 //Get prices for all pairs from Binance
 const getAllPrices = async () => {
@@ -174,40 +169,10 @@ const filterStreamData = (stream) => {
   array.forEach(item => {
     if (item.symbol === stream.symbol) {
       const tradeCost = stream.price * stream.quantity
-      stream.balance = item.balance
-      if (tradeCost > 0.4) {
+      if (tradeCost > item.coeficient) {
         console.log(stream)
+        sendTelegramMessage(stream, item, tradeCost)
       }
     }
   })
 }
-
-//Icons for telegram message
-const upGraph = String.fromCodePoint(0x1F4C8);
-const downGraph = String.fromCodePoint(0x1F4C9);
-const tick = String.fromCodePoint(0x2705);
-const cross = String.fromCodePoint(0x274C);
-const price = String.fromCodePoint(0x1F4B2);
-
-      //   if (total > customObjectArray[i].coeficient > 1 && priceDifference <= 5){
-      //     if (tradeData.maker === false) {
-      //       const buyMsgTemplate =
-      //       `${upGraph} #${tradeData.symbol} ${tick}BUY\n`+
-      //       `BTC: ${total.toFixed(2)}\n`+
-      //       `${price}Price: ${tradeData.price}\n`+
-      //       `${priceDifference.toFixed(2)}% of ${customObjectArray[i].weekAverage}\n`+
-      //       `Volume(24h): ${customObjectArray[i].dayVolume} BTC\n`+
-      //       `Balance(7d): ${customObjectArray[i].balance} BTC`
-      //       bot.sendMessage(chat_id, buyMsgTemplate);
-      //     } else if (tradeData.maker === true) {
-      //       const sellMsgTemplate =
-      //       `${downGraph} #${tradeData.symbol} ${cross}SELL\n`+
-      //       `BTC: ${total.toFixed(2)}\n`+
-      //       `${price}Price: ${tradeData.price}\n`+
-      //       `${priceDifference.toFixed(2)}% of ${customObjectArray[i].weekAverage}\n`+
-      //       `Volume(24h): ${customObjectArray[i].dayVolume} BTC\n`+
-      //       `Balance(7d): ${customObjectArray[i].balance} BTC`
-      //       bot.sendMessage(chat_id, sellMsgTemplate);
-      //     }
-      //   }
-      // }
