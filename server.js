@@ -56,26 +56,25 @@ binanceWS.onKline('BNBBTC', '1m', data => {
 //Receive all trading pairs. Filter and store them by market.
 let btcPairs
 let tradeStreams
-const pushEachPairToArray = async () => {
+const getMarket = async () => {
   try {
     const data = await getAllPrices()
     const market = await marketFilter(data)
     btcPairs = market.btcPairs
     tradeStreams = tradeStreamsArray(btcPairs)
     console.log('Group by market')
+    return btcPairs
   } catch (e) {
     console.error('No data is received', e)
   }
-  getKlines()
 }
-
-pushEachPairToArray()
 
 /**
 Request kline object for each pair on the selected market and period.
 Add symbol to each object.
 */
-const getKlines = () => {
+const getKlines = async () => {
+  const btcPairs = await getMarket()
   console.log('Get klines')
   for (let i = 0; i < btcPairs.length; i++) {
     binanceRest
@@ -85,13 +84,14 @@ const getKlines = () => {
         limit: 7
       })
       .then(data => {
-        data.forEach(item => {item['symbol'] = btcPairs[i]})
+        data.forEach(item => {item.symbol = btcPairs[i]})
         createCustomObject(data)
       })
-      .catch(err => {console.error(err)});
+      .catch(e => {console.error(e)});
   }
 }
 
+getKlines()
 //Create array of trade streams from market for use in @onCombinedStream
 const tradeStreamsArray = (market) => {
   const streamsArray = []
