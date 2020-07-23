@@ -55,13 +55,11 @@ binanceWS.onKline('BNBBTC', '1m', data => {
 
 //Receive all trading pairs. Filter and store them by market.
 let btcPairs
-let tradeStreams
 const getMarket = async () => {
   try {
     const data = await getAllPrices()
     const market = await marketFilter(data)
     btcPairs = market.btcPairs
-    tradeStreams = tradeStreamsArray(btcPairs)
     console.log('Group by market')
     return btcPairs
   } catch (e) {
@@ -93,7 +91,8 @@ const getKlines = async () => {
 
 getKlines()
 //Create array of trade streams from market for use in @onCombinedStream
-const tradeStreamsArray = (market) => {
+const tradeStreamsArray = async () => {
+  const market = await getMarket()
   const streamsArray = []
   let stream
   market.forEach(pair => {
@@ -153,8 +152,9 @@ const addObjectToArray = (object) => {
 }
 
 //Run trade streams for each pair from selected market.
-const startStreams = (callback) => {
+const startStreams = async (callback) => {
   console.log('Streams are started')
+  const tradeStreams = await tradeStreamsArray()
   binanceWS.onCombinedStream(tradeStreams, streamEvent => {
     callback(streamEvent.data)
   })
