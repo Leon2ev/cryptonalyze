@@ -88,6 +88,9 @@ const getKlines = async () => {
   }
 }
 
+//Start of a program
+getKlines()
+
 //Create one 7 day object from 7 single day objects.
 const sevenDaysObject = (data) => {
 
@@ -114,8 +117,8 @@ const sevenDaysObject = (data) => {
 
 //Calculate custom variables and add then to 7day kline object.
 const createCustomObject = (data) => {
-  let weekAveragePrice = data.weekVolumeQuote / data.weekVolumeTotal
-  let balance = 2 * data.weekTakerVolumeQuote - data.weekVolumeQuote
+  const weekAveragePrice = data.weekVolumeQuote / data.weekVolumeTotal
+  const balance = 2 * data.weekTakerVolumeQuote - data.weekVolumeQuote
   data.coeficient = data.weekVolumeQuote / 672
   data.weekVolumeQuote = data.weekVolumeQuote.toFixed(2)
   data.weekVolumeTotal = data.weekVolumeTotal.toString()
@@ -124,8 +127,6 @@ const createCustomObject = (data) => {
   data.balance = balance.toFixed(2)
   addObjectToArray(data)
 }
-
-getKlines()
 
 //Create array of trade streams from market for use in @onCombinedStream
 const tradeStreamsArray = async () => {
@@ -188,14 +189,6 @@ const tick = String.fromCodePoint(0x2705);
 const cross = String.fromCodePoint(0x274C);
 const price = String.fromCodePoint(0x1F4B2);
 
-
-      // if (streamEvent.stream === customObjectArray[i].tradeStream) {
-      //   tradeData = streamEvent.data
-      //   if (tradeData.symbol === customObjectArray[i].symbol) {
-      //     total = tradeData.price * tradeData.quantity
-      //     priceDifference = (tradeData.price - customObjectArray[i].weekAverage)
-      //                       / tradeData.price * 100
-      //   }
       //   if (total > customObjectArray[i].coeficient > 1 && priceDifference <= 5){
       //     if (tradeData.maker === false) {
       //       const buyMsgTemplate =
