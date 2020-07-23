@@ -60,7 +60,6 @@ const getMarket = async () => {
     const data = await getAllPrices()
     const market = await marketFilter(data)
     btcPairs = market.btcPairs
-    console.log('Group by market')
     return btcPairs
   } catch (e) {
     console.error('No data is received', e)
@@ -72,24 +71,62 @@ Request kline object for each pair on the selected market and period.
 Add symbol to each object.
 */
 const getKlines = async () => {
-  const btcPairs = await getMarket()
+  const market = await getMarket()
   console.log('Get klines')
-  for (let i = 0; i < btcPairs.length; i++) {
+  for (let i = 0; i < market.length; i++) {
     binanceRest
       .klines({
-        symbol: btcPairs[i],
+        symbol: market[i],
         interval: '1d',
         limit: 7
       })
       .then(data => {
-        data.forEach(item => {item.symbol = btcPairs[i]})
-        createCustomObject(data)
+        data.forEach(item => {item.symbol = market[i]})
+        sevenDaysObject(data)
       })
       .catch(e => {console.error(e)});
   }
 }
 
+//Create one 7 day object from 7 single day objects.
+const sevenDaysObject = (data) => {
+
+  let symbol
+  let weekVolumeQuote = 0;
+  let weekVolumeTotal = 0;
+  let weekTakerVolumeQuote = 0;
+
+  data.forEach(day => {
+    symbol = day.symbol
+    weekVolumeQuote += parseFloat(day.quoteAssetVolume)
+    weekVolumeTotal += parseFloat(day.volume)
+    weekTakerVolumeQuote += parseFloat(day.takerQuoteAssetVolume)
+  })
+
+  const object = {symbol,
+                  weekVolumeQuote,
+                  weekVolumeTotal,
+                  weekTakerVolumeQuote
+                  }
+
+  createCustomObject(object)
+}
+
+//Calculate custom variables and add then to 7day kline object.
+const createCustomObject = (data) => {
+  let weekAveragePrice = data.weekVolumeQuote / data.weekVolumeTotal
+  let balance = 2 * data.weekTakerVolumeQuote - data.weekVolumeQuote
+  data.coeficient = data.weekVolumeQuote / 672
+  data.weekVolumeQuote = data.weekVolumeQuote.toFixed(2)
+  data.weekVolumeTotal = data.weekVolumeTotal.toString()
+  data.weekTakerVolumeQuote = data.weekTakerVolumeQuote.toFixed(2)
+  data.weekAveragePrice = weekAveragePrice.toFixed(8)
+  data.balance = balance.toFixed(2)
+  addObjectToArray(data)
+}
+
 getKlines()
+
 //Create array of trade streams from market for use in @onCombinedStream
 const tradeStreamsArray = async () => {
   const market = await getMarket()
@@ -100,36 +137,6 @@ const tradeStreamsArray = async () => {
     streamsArray.push(stream)
   })
   return streamsArray
-}
-
-//Create custom object
-
-
-let object
-const createCustomObject = data => {
-  let weekVolumeQuote = 0;
-  let weekVolume = 0;
-  let weekTakerVolumeQuote = 0;
-  let weekAveragePrice = 0;
-  let coeficient = 0;
-  let balance = 0;
-
-  for (let i = 0; i < data.length; i++) {
-    const symbol = data[i].symbol
-    weekVolumeQuote += parseFloat(data[i].quoteAssetVolume)
-    weekVolume += parseFloat(data[i].volume)
-    weekTakerVolumeQuote += parseFloat(data[i].takerQuoteAssetVolume)
-    weekAveragePrice = weekVolumeQuote / weekVolume
-    coeficient = weekVolumeQuote / 672
-    balance = weekTakerVolumeQuote - (weekVolumeQuote - weekTakerVolumeQuote)
-    object = {symbol,
-              coeficient,
-              'weekVolumeQuote': weekVolumeQuote.toFixed(2),
-              'weekAveragePrice': weekAveragePrice.toFixed(8),
-              'balance': balance.toFixed(2)
-              }
-  }
-  addObjectToArray(object)
 }
 
 /**
