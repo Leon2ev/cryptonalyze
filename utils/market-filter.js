@@ -22,7 +22,9 @@ const marketFilter = (data) => {
   const ngnPairs = [];
   for (let i = 0; i < data.length; i++) {
     if (data[i].symbol.slice(-3) === 'BTC') {
-      btcPairs.push(data[i].symbol);
+      const object = splitMarketSymbol(data[i].symbol)
+      object.symbol = data[i].symbol
+      btcPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'ETH') {
       ethPairs.push(data[i].symbol);
     } else if (data[i].symbol.slice(-3) === 'BNB') {
@@ -88,6 +90,13 @@ const marketFilter = (data) => {
     zarPairs,
     uahPairs
   }
+}
+
+const splitMarketSymbol = (data) => {
+  const quoteAsset = data.slice(0, -3);
+  const market = data.slice(-3);
+
+  return {quoteAsset, market}
 }
 
 module.exports = marketFilter

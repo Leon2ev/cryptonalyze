@@ -71,12 +71,14 @@ const getKlines = async () => {
   for (let i = 0; i < market.length; i++) {
     binanceRest
       .klines({
-        symbol: market[i],
+        symbol: market[i].symbol,
         interval: '1d',
         limit: 7
       })
       .then(data => {
-        data.forEach(item => {item.symbol = market[i]})
+        data.forEach(item => {item.symbol = market[i].symbol,
+                              item.quoteAsset = market[i].quoteAsset,
+                              item.market = market[i].market})
         sevenDaysObject(data)
       })
       .catch(e => {console.error(e)});
@@ -90,18 +92,24 @@ getKlines()
 const sevenDaysObject = (data) => {
 
   let symbol
+  let quoteAsset
+  let market
   let weekVolumeQuote = 0;
   let weekVolumeTotal = 0;
   let weekTakerVolumeQuote = 0;
 
   data.forEach(day => {
     symbol = day.symbol
+    quoteAsset = day.quoteAsset
+    market = day.market
     weekVolumeQuote += parseFloat(day.quoteAssetVolume)
     weekVolumeTotal += parseFloat(day.volume)
     weekTakerVolumeQuote += parseFloat(day.takerQuoteAssetVolume)
   })
 
   const object = {symbol,
+                  quoteAsset,
+                  market,
                   weekVolumeQuote,
                   weekVolumeTotal,
                   weekTakerVolumeQuote
@@ -129,7 +137,7 @@ const tradeStreamsArray = async () => {
   const streamsArray = []
   let stream
   market.forEach(pair => {
-    stream = streams.trade(pair)
+    stream = streams.trade(pair.symbol)
     streamsArray.push(stream)
   })
   return streamsArray
@@ -169,8 +177,7 @@ const filterStreamData = (stream) => {
   array.forEach(item => {
     if (item.symbol === stream.symbol) {
       const tradeCost = stream.price * stream.quantity
-      if (tradeCost > item.coeficient) {
-        console.log(stream)
+      if (tradeCost > 0.3) {
         sendTelegramMessage(stream, item, tradeCost)
       }
     }
