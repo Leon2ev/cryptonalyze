@@ -177,7 +177,7 @@ const filterStreamData = (stream) => {
   array.forEach(item => {
     if (item.symbol === stream.symbol) {
       const tradeCost = stream.price * stream.quantity
-      if (tradeCost > 0.3) {
+      if (tradeCost > item.coeficient) {
         sendTelegramMessage(stream, item, tradeCost)
       }
     }

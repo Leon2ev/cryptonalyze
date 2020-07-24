@@ -29,7 +29,8 @@ const sendTelegramMessage = (stream, item, tradeCost) => {
     `${price}Balance: *${item.balance} ${item.market}*\n`+
     `--------------------\n`+
     `${upGraph} [Link to Binance](${url}${item.market}_${item.quoteAsset})`
-    bot.sendMessage(chat_id, buyMsgTemplate, { parse_mode: 'Markdown' });
+    bot.sendMessage(chat_id, buyMsgTemplate, {parse_mode: 'Markdown', 
+                                              disable_web_page_preview: true });
 
   } else if (stream.maker === true) {
     const sellMsgTemplate =
@@ -44,7 +45,8 @@ const sendTelegramMessage = (stream, item, tradeCost) => {
     `${price}Balance: *${item.balance} ${item.market}*\n`+
     `--------------------\n`+
     `${downGraph} [Link to Binance](${url}${item.market}_${item.quoteAsset})`
-    bot.sendMessage(chat_id, sellMsgTemplate, { parse_mode: 'Markdown' });
+    bot.sendMessage(chat_id, sellMsgTemplate, { parse_mode: 'Markdown',
+                                                disable_web_page_preview: true });
   }
 }
 
