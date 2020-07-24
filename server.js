@@ -76,9 +76,11 @@ const getKlines = async () => {
         limit: 7
       })
       .then(data => {
-        data.forEach(item => {item.symbol = market[i].symbol,
-                              item.quoteAsset = market[i].quoteAsset,
-                              item.market = market[i].market})
+        data.forEach(item => {
+          item.symbol = market[i].symbol,
+          item.quoteAsset = market[i].quoteAsset,
+          item.market = market[i].market
+        })
         sevenDaysObject(data)
       })
       .catch(e => {console.error(e)});
