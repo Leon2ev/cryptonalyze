@@ -1,3 +1,4 @@
+//Filter all pairs from Binance and group them by the market
 const marketFilter = (data) => {
   const btcPairs = [];
   const bnbPairs = [];
@@ -91,6 +92,7 @@ const marketFilter = (data) => {
   }
 }
 
+//Split single symbol string on market and quote asset and return it as object.
 const splitMarketSymbol = (data) => {
   const symbol = data;
   const quoteAsset = data.slice(0, -3);

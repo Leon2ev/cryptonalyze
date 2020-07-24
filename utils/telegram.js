@@ -15,6 +15,7 @@ const tick = String.fromCodePoint(0x2705);
 const cross = String.fromCodePoint(0x274C);
 const price = String.fromCodePoint(0x1F4B2);
 
+//Message template for telegram
 const sendTelegramMessage = (stream, item, tradeCost) => {
   if (stream.maker === false) {
     const buyMsgTemplate =
