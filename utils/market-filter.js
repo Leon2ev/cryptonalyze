@@ -23,7 +23,6 @@ const marketFilter = (data) => {
   for (let i = 0; i < data.length; i++) {
     if (data[i].symbol.slice(-3) === 'BTC') {
       const object = splitMarketSymbol(data[i].symbol)
-      object.symbol = data[i].symbol
       btcPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'ETH') {
       ethPairs.push(data[i].symbol);
@@ -93,10 +92,11 @@ const marketFilter = (data) => {
 }
 
 const splitMarketSymbol = (data) => {
+  const symbol = data;
   const quoteAsset = data.slice(0, -3);
   const market = data.slice(-3);
 
-  return {quoteAsset, market}
+  return {symbol, quoteAsset, market}
 }
 
 module.exports = marketFilter
