@@ -43,12 +43,22 @@ const getMarket = async () => {
   try {
     const data = await getAllPrices()
     const market = await marketFilter(data)
-    console.log(market)
-    btcPairs = market.allPairs
+    const markets = await selectedMarkets(market.btcPairs, market.ethPairs)
+    btcPairs = markets
+    console.log(btcPairs)
     return btcPairs
   } catch (e) {
     console.error('No data is received', e)
   }
+}
+
+//Create one array from selected markets.
+const selectedMarkets = (...args) => {
+  const array = []
+  args.forEach(arg => {
+    array.push(...arg)
+  })
+  return array
 }
 
 /**
