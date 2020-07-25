@@ -38,15 +38,19 @@ binanceWS.onKline('BNBBTC', '1m', data => {
 });
 
 //Receive all trading pairs. Filter and store them by market.
-let btcPairs
+let marketPairs
 const getMarket = async () => {
   try {
     const data = await getAllPrices()
     const market = await marketFilter(data)
-    const markets = await selectedMarkets(market.btcPairs, market.ethPairs)
-    btcPairs = markets
-    console.log(btcPairs)
-    return btcPairs
+    const markets = await selectedMarkets(
+                                          market.btcPairs,
+                                          market.ethPairs,
+                                          market.bnbPairs,
+                                          market.usdtPairs
+                                        );
+    marketPairs = markets
+    return markets
   } catch (e) {
     console.error('No data is received', e)
   }
@@ -151,7 +155,7 @@ let marketsArray = []
 let streamsStarted
 const addObjectToArray = (object) => {
   bufferMarketArray.push(object)
-  if (btcPairs.length === bufferMarketArray.length) {
+  if (marketPairs.length === bufferMarketArray.length) {
     marketsArray = [...bufferMarketArray]
     bufferMarketArray = []
     if (!streamsStarted) {
