@@ -43,7 +43,8 @@ const getMarket = async () => {
   try {
     const data = await getAllPrices()
     const market = await marketFilter(data)
-    btcPairs = market.btcPairs
+    console.log(market)
+    btcPairs = market.allPairs
     return btcPairs
   } catch (e) {
     console.error('No data is received', e)
