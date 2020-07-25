@@ -129,15 +129,16 @@ const createCustomObject = (data) => {
   addObjectToArray(data)
 }
 
-//Create array of trade streams from market for use in @onCombinedStream
-const tradeStreamsArray = async () => {
+//Create array streams from market for use in @onCombinedStream
+const streamsArray = async () => {
   const market = await getMarket()
   const streamsArray = []
-  let stream
   market.forEach(pair => {
-    stream = streams.trade(pair.symbol)
-    streamsArray.push(stream)
+    const tradeStream = streams.trade(pair.symbol)
+    const klineStream = streams.kline(pair.symbol, '1w')
+    streamsArray.push(tradeStream, klineStream)
   })
+  console.log(streamsArray)
   return streamsArray
 }
 
@@ -163,8 +164,8 @@ const addObjectToArray = (object) => {
 //Run trade streams for each pair from selected market.
 const startStreams = async (callback) => {
   console.log('Streams are started')
-  const tradeStreams = await tradeStreamsArray()
-  binanceWS.onCombinedStream(tradeStreams, streamEvent => {
+  const combinedStreams = await streamsArray()
+  binanceWS.onCombinedStream(combinedStreams, streamEvent => {
     callback(streamEvent.data)
   })
 }
