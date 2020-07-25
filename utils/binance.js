@@ -28,7 +28,7 @@ Check if new 15min kline is open.
 When new kline is open sends request to update data.
 */
 let newKlineTime
-binanceWS.onKline('BNBBTC', '5m', data => {
+binanceWS.onKline('BNBBTC', '1m', data => {
   if (newKlineTime === undefined) {
     newKlineTime = data.kline.startTime;
   } else if (newKlineTime < data.kline.startTime) {
@@ -43,12 +43,7 @@ const getMarket = async () => {
   try {
     const data = await getAllPrices()
     const market = await marketFilter(data)
-    const markets = await selectedMarkets(
-      market.btcPairs,
-      market.ethPairs,
-      market.bnbPairs,
-      market.usdtPairs
-    );
+    const markets = await combineArrays(market.usdtPairs);
     marketPairs = markets
     return markets
   } catch (e) {
@@ -57,7 +52,7 @@ const getMarket = async () => {
 }
 
 //Create one array from selected markets.
-const selectedMarkets = (...args) => {
+const combineArrays = (...args) => {
   const array = []
   args.forEach(arg => {
     array.push(...arg)
