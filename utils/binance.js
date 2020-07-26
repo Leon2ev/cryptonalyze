@@ -107,24 +107,22 @@ Add symbol to each object.
 */
 const getKlines = async (time) => {
   const market = await getMarket()
-  console.log('Get klines')
-  for (let i = 0; i < market.length; i++) {
-    binanceRest
-      .klines({
-        symbol: market[i].symbol,
+  for (const pair of market) {
+    try {
+      const data = await binanceRest.klines({
+        symbol: pair.symbol,
         interval: '1d',
         limit: 7,
         endTime: time - 1
       })
-      .then(data => {
-        data.forEach(item => {
-          item.symbol = market[i].symbol,
-          item.quoteAsset = market[i].quoteAsset,
-          item.market = market[i].market
-        })
-        // sevenDaysObject(data)
+      data.forEach(item => {
+        item.symbol = pair.symbol,
+        item.quoteAsset = pair.quoteAsset,
+        item.market = pair.market
       })
-      .catch(e => {console.error(e)});
+    } catch (e) {
+      console.error(e)
+    }
   }
 }
 
