@@ -68,9 +68,7 @@ const startStreams = async (callback) => {
 }
 
 const filterStreamData = (stream) => {
-  if (marketsArray.length === 0 && stream.eventType === 'kline') {
-    getKlineStartTime(stream)
-  } else if (marketsArray.length > 1 && stream.eventType === 'kline') {
+  if (stream.eventType === 'kline') {
     getKlineStartTime(stream)
   } else if (marketsArray.length > 1 && stream.eventType === 'trade') {
     marketsArray.forEach(item => {
