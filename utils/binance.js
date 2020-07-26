@@ -23,20 +23,6 @@ const getAllPrices = async () => {
   }
 }
 
-/**
-Check if new 15min kline is open.
-When new kline is open sends request to update data.
-*/
-let newKlineTime
-binanceWS.onKline('BNBBTC', '1m', data => {
-  if (newKlineTime === undefined) {
-    newKlineTime = data.kline.startTime;
-  } else if (newKlineTime < data.kline.startTime) {
-    newKlineTime = data.kline.startTime
-    getKlines()
-  }
-});
-
 //Receive all trading pairs. Filter and store them by market.
 let marketPairs
 const getMarket = async () => {
@@ -60,105 +46,16 @@ const combineArrays = (...args) => {
   return array
 }
 
-/**
-Request kline object for each pair on the selected market and period.
-Add symbol to each object.
-*/
-const getKlines = async () => {
-  const market = await getMarket()
-  console.log('Get klines')
-  for (let i = 0; i < market.length; i++) {
-    binanceRest
-      .klines({
-        symbol: market[i].symbol,
-        interval: '1d',
-        limit: 7
-      })
-      .then(data => {
-        data.forEach(item => {
-          item.symbol = market[i].symbol,
-          item.quoteAsset = market[i].quoteAsset,
-          item.market = market[i].market
-        })
-        sevenDaysObject(data)
-      })
-      .catch(e => {console.error(e)});
-  }
-}
-
-//Create one 7 day object from 7 single day objects.
-const sevenDaysObject = (data) => {
-
-  let symbol
-  let quoteAsset
-  let market
-  let weekVolumeQuote = 0;
-  let weekVolumeTotal = 0;
-  let weekTakerVolumeQuote = 0;
-
-  data.forEach(day => {
-    symbol = day.symbol
-    quoteAsset = day.quoteAsset
-    market = day.market
-    weekVolumeQuote += parseFloat(day.quoteAssetVolume)
-    weekVolumeTotal += parseFloat(day.volume)
-    weekTakerVolumeQuote += parseFloat(day.takerQuoteAssetVolume)
-  })
-
-  const object = {symbol,
-                  quoteAsset,
-                  market,
-                  weekVolumeQuote,
-                  weekVolumeTotal,
-                  weekTakerVolumeQuote
-                  }
-
-  createCustomObject(object)
-}
-
-//Calculate custom variables and add then to 7day kline object.
-const createCustomObject = (data) => {
-  const weekAveragePrice = data.weekVolumeQuote / data.weekVolumeTotal
-  const balance = 2 * data.weekTakerVolumeQuote - data.weekVolumeQuote
-  data.coeficient = data.weekVolumeQuote / 672
-  data.weekVolumeQuote = data.weekVolumeQuote.toFixed(2)
-  data.weekVolumeTotal = data.weekVolumeTotal.toString()
-  data.weekTakerVolumeQuote = data.weekTakerVolumeQuote.toFixed(2)
-  data.weekAveragePrice = weekAveragePrice.toFixed(8)
-  data.balance = balance.toFixed(2)
-  addObjectToArray(data)
-}
-
 //Create array streams from market for use in @onCombinedStream
 const streamsArray = async () => {
   const market = await getMarket()
   const streamsArray = []
   market.forEach(pair => {
     const tradeStream = streams.trade(pair.symbol)
-    const klineStream = streams.kline(pair.symbol, '1w')
+    const klineStream = streams.kline(pair.symbol, '1d')
     streamsArray.push(tradeStream, klineStream)
   })
-  console.log(streamsArray)
   return streamsArray
-}
-
-/**
-Buffer array get custom trading pair objects one by one. When all objects
-received, add data to market array and empy buffer.
-*/
-let bufferMarketArray = []
-let marketsArray = []
-let streamsStarted
-const addObjectToArray = (object) => {
-  bufferMarketArray.push(object)
-  if (marketPairs.length === bufferMarketArray.length) {
-    marketsArray = [...bufferMarketArray]
-    bufferMarketArray = []
-    if (!streamsStarted) {
-      streamsStarted = true
-      startStreams(filterStreamData)
-    }
-  }
 }
 
 //Run trade streams for each pair from selected market.
@@ -170,17 +67,129 @@ const startStreams = async (callback) => {
   })
 }
 
-//Filter stream data. For filter using one week historic data.
+//
 const filterStreamData = (stream) => {
-  const array = marketsArray
-  array.forEach(item => {
-    if (item.symbol === stream.symbol) {
-      const tradeCost = stream.price * stream.quantity
-      if (tradeCost > item.coeficient) {
-        sendTelegramMessage(stream, item, tradeCost)
+  marketPairs.forEach(item => {
+    if (stream.eventType === 'kline') {
+      getKlineStartTime(stream)
+    } else if (stream.eventType === 'trade') {
+      if (item.symbol === stream.symbol) {
+        const tradeCost = stream.price * stream.quantity
+        if (tradeCost > 50000) {
+          sendTelegramMessage(stream, item, tradeCost)
+        }
       }
     }
   })
 }
 
-module.exports = getKlines
+//Check if new kline is open. Store and return it.
+let newKlineStartTime
+const getKlineStartTime = (stream) => {
+  if (newKlineStartTime === undefined) {
+    newKlineStartTime = stream.kline.startTime;
+    getKlines(newKlineStartTime)
+  } else if (newKlineStartTime < stream.kline.startTime) {
+    newKlineStartTime = stream.kline.startTime
+    getKlines(newKlineStartTime)
+  }
+  return stream.kline.startTime
+}
+
+// App starter
+const startApp = () => {
+  startStreams(filterStreamData)
+}
+
+/**
+Request kline object for each pair on the selected market and period.
+Add symbol to each object.
+*/
+const getKlines = async (time) => {
+  const market = await getMarket()
+  console.log('Get klines')
+  for (let i = 0; i < market.length; i++) {
+    binanceRest
+      .klines({
+        symbol: market[i].symbol,
+        interval: '1d',
+        limit: 7,
+        endTime: time - 1
+      })
+      .then(data => {
+        data.forEach(item => {
+          item.symbol = market[i].symbol,
+          item.quoteAsset = market[i].quoteAsset,
+          item.market = market[i].market
+        })
+        // sevenDaysObject(data)
+      })
+      .catch(e => {console.error(e)});
+  }
+}
+
+//Create one 7 day object from 7 single day objects.
+// const sevenDaysObject = (data) => {
+//   console.log(data)
+//   let symbol
+//   let quoteAsset
+//   let market
+//   let weekVolumeQuote = 0;
+//   let weekVolumeTotal = 0;
+//   let weekTakerVolumeQuote = 0;
+//
+//   data.forEach(day => {
+//     symbol = day.symbol
+//     quoteAsset = day.quoteAsset
+//     market = day.market
+//     weekVolumeQuote += parseFloat(day.quoteAssetVolume)
+//     weekVolumeTotal += parseFloat(day.volume)
+//     weekTakerVolumeQuote += parseFloat(day.takerQuoteAssetVolume)
+//   })
+//
+//   const object = {symbol,
+//                   quoteAsset,
+//                   market,
+//                   weekVolumeQuote,
+//                   weekVolumeTotal,
+//                   weekTakerVolumeQuote
+//                   }
+//
+//   createCustomObject(object)
+// }
+
+//Calculate custom variables and add then to 7day kline object.
+// const createCustomObject = (data) => {
+//   const weekAveragePrice = data.weekVolumeQuote / data.weekVolumeTotal
+//   const balance = 2 * data.weekTakerVolumeQuote - data.weekVolumeQuote
+//   data.coeficient = data.weekVolumeQuote / 672
+//   data.weekVolumeQuote = data.weekVolumeQuote.toFixed(2)
+//   data.weekVolumeTotal = data.weekVolumeTotal.toString()
+//   data.weekTakerVolumeQuote = data.weekTakerVolumeQuote.toFixed(2)
+//   data.weekAveragePrice = weekAveragePrice.toFixed(8)
+//   data.balance = balance.toFixed(2)
+//   addObjectToArray(data)
+// }
+
+/**
+Buffer array get custom trading pair objects one by one. When all objects
+received, add data to market array and empy buffer.
+*/
+// let bufferMarketArray = []
+// let marketsArray = []
+// let streamsStarted
+// const addObjectToArray = (object) => {
+//   bufferMarketArray.push(object)
+//   if (marketPairs.length === bufferMarketArray.length) {
+//     marketsArray = [...bufferMarketArray]
+//     bufferMarketArray = []
+//     if (!streamsStarted) {
+//       streamsStarted = true
+//       startStreams(filterStreamData)
+//     }
+//   }
+// }
+
+//Filter stream data. For filter using one week historic data.
+
+module.exports = startApp
