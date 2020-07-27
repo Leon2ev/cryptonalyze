@@ -30,8 +30,9 @@ const getMarket = async () => {
     const data = await getAllPrices()
     const market = await marketFilter(data)
     const markets = await combineArrays(market.usdtPairs);
+    // marketPairs = [markets[0], markets[1]]
     marketPairs = markets
-    return markets
+    return marketPairs
   } catch (e) {
     console.error('No data is received', e)
   }
@@ -52,7 +53,7 @@ const streamsArray = async () => {
   const streamsArray = []
   market.forEach(pair => {
     const tradeStream = streams.trade(pair.symbol)
-    const klineStream = streams.kline(pair.symbol, '5m')
+    const klineStream = streams.kline(pair.symbol, '1d')
     streamsArray.push(tradeStream, klineStream)
   })
   return streamsArray
@@ -72,10 +73,10 @@ const filterStreamData = (stream) => {
     getKlineStartTime(stream)
     customStreamKlineObject(stream)
   } else if (stream.eventType === 'trade') {
-    marketsArray.forEach(item => {
+    newArray.forEach(item => {
       if (item.symbol === stream.symbol) {
         const tradeCost = stream.price * stream.quantity
-        if (tradeCost > 30000) {
+        if (tradeCost > item.coeficient) {
           sendTelegramMessage(stream, item, tradeCost)
         }
       }
@@ -85,29 +86,36 @@ const filterStreamData = (stream) => {
 
 const customStreamKlineObject = ({kline}) => {
   const array = marketsArray
+  let symbol
+  let quoteAsset
+  let market
+  let weekVolumeQuote = 0;
+  let weekVolumeTotal = 0;
+  let weekTakerVolumeQuote = 0
   array.forEach(pair => {
     if (pair.symbol === kline.symbol) {
-      pair.symbol = kline.symbol
       pair.weekVolumeQuote = parseFloat(pair.weekVolumeQuote)
       pair.weekVolumeTotal = parseFloat(pair.weekVolumeTotal)
       pair.weekTakerVolumeQuote = parseFloat(pair.weekTakerVolumeQuote)
-      pair.weekVolumeQuote += parseFloat(kline.quoteVolume)
-      pair.weekVolumeTotal += parseFloat(kline.volume)
-      pair.weekTakerVolumeQuote += parseFloat(kline.quoteVolumeActive)
-      createCustomObject(pair)
+
+      symbol = pair.symbol
+      quoteAsset= pair.quoteAsset
+      market = pair.market
+      weekVolumeQuote = pair.weekVolumeQuote + parseFloat(kline.quoteVolume)
+      weekVolumeTotal = pair.weekVolumeTotal + parseFloat(kline.volume)
+      weekTakerVolumeQuote = pair.weekTakerVolumeQuote + parseFloat(kline.quoteVolumeActive)
     }
   })
+  const object = {
+    symbol,
+    quoteAsset,
+    market,
+    weekVolumeQuote,
+    weekVolumeTotal,
+    weekTakerVolumeQuote
+  }
 
-  // const symbol = kline.symbol
-  // const quoteVolume = parseFloat(kline.quoteVolume)
-  // const volume = parseFloat(kline.volume)
-  // const quoteVolumeTaker = parseFloat(kline.quoteVolumeActive)
-  // return {
-  //   symbol,
-  //   quoteVolume,
-  //   volume,
-  //   quoteVolumeTaker
-  // }
+  createCustomObject(object, testArray)
 }
 
 //Check if new kline is open to calculate privious kline endTime.
@@ -115,7 +123,6 @@ let endTimeForKlines
 const getKlineStartTime = async ({kline}) => {
   if (endTimeForKlines === undefined || (endTimeForKlines + 1) < kline.startTime) {
     endTimeForKlines = kline.startTime - 1
-    console.log(endTimeForKlines)
     getKlines(marketPairs, endTimeForKlines)
   }
 }
@@ -135,7 +142,7 @@ const getKlines = (market, time) => {
     binanceRest
       .klines({
         symbol: market[i].symbol,
-        interval: '5m',
+        interval: '1d',
         limit: 7,
         endTime: time
       })
@@ -180,11 +187,11 @@ const sevenDaysObject = (data) => {
                   weekTakerVolumeQuote
                   }
 
-  createCustomObject(object)
+  createCustomObject(object, addObjectToArray)
 }
 
 //Calculate custom variables and add then to 7day kline object.
-const createCustomObject = (data) => {
+const createCustomObject = (data, callback) => {
   const weekAveragePrice = data.weekVolumeQuote / data.weekVolumeTotal
   const balance = 2 * data.weekTakerVolumeQuote - data.weekVolumeQuote
   data.coeficient = data.weekVolumeQuote / 672
@@ -193,7 +200,7 @@ const createCustomObject = (data) => {
   data.weekTakerVolumeQuote = data.weekTakerVolumeQuote.toFixed(2)
   data.weekAveragePrice = weekAveragePrice.toFixed(8)
   data.balance = balance.toFixed(2)
-  addObjectToArray(data)
+  callback(data)
 }
 
 /**
@@ -203,19 +210,33 @@ received, add data to market array and empy buffer.
 let bufferMarketArray = []
 let marketsArray = []
 const addObjectToArray = (object) => {
-  if (marketsArray.length === marketPairs.length) {
-    marketsArray.forEach(pair => {
-      if (pair.symbol === object.symbol) {
-        pair = object
-      }
-    })
-  } else {
-    bufferMarketArray.push(object)
-    if (marketPairs.length === bufferMarketArray.length) {
-      marketsArray = [...bufferMarketArray]
-      bufferMarketArray = []
-    }
+  bufferMarketArray.push(object)
+  if (marketPairs.length === bufferMarketArray.length) {
+    marketsArray = [...bufferMarketArray]
+    bufferMarketArray = []
   }
 }
+
+let newArray = []
+const testArray = (object) => {
+  if (newArray.some(pair => pair.symbol === object.symbol)) {
+    newArray.forEach(pair => {
+      if (pair.symbol === object.symbol) {
+        pair.symbol = object.symbol
+        pair.quoteAsset = object.quoteAsset
+        pair.market = object.market
+        pair.coeficient = object.coeficient
+        pair.weekVolumeQuote = object.weekVolumeQuote
+        pair.weekVolumeTotal = object.weekVolumeTotal
+        pair.weekTakerVolumeQuote = object.weekTakerVolumeQuote
+        pair.weekAveragePrice = object.weekAveragePrice
+        pair.balance = object.balance
+      }
+    })
+  } else if (object != undefined) {
+    newArray.push(object)
+  }
+}
+
 
 module.exports = startApp
