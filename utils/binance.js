@@ -85,7 +85,6 @@ const filterStreamData = (stream) => {
     getKlineStartTime(stream)
   } else if (stream.eventType === 'trade') {
     marketsArray.forEach(item => {
-      console.log(item)
       if (item.symbol === stream.symbol) {
         const tradeCost = stream.price * stream.quantity
         if (tradeCost > item.coeficient) {
@@ -96,15 +95,13 @@ const filterStreamData = (stream) => {
   }
 }
 
-//Check if new kline is open. Store and return it.
-let newKlineStartTime
-const getKlineStartTime = (stream) => {
-  if (newKlineStartTime === undefined) {
-    newKlineStartTime = stream.kline.startTime - 1
-    getKlines(marketPairs, newKlineStartTime)
-  } else if (newKlineStartTime < stream.kline.startTime) {
-    newKlineStartTime = stream.kline.startTime - 1
-    getKlines(marketPairs, newKlineStartTime)
+let endTimeForKlines
+//Check if new kline is open to calculate privious kline endTime.
+const getKlineStartTime = async ({kline}) => {
+  const market = await getMarket()
+  if (endTimeForKlines === undefined || endTimeForKlines < kline.startTime) {
+    endTimeForKlines = kline.startTime - 1
+    getKlines(market, endTimeForKlines)
   }
 }
 
@@ -121,23 +118,23 @@ Add symbol to each object.
 const getKlines = (market, time) => {
   for (let i = 0; i < market.length; i++) {
     binanceRest
-        .klines({
-            symbol: market[i].symbol,
-            interval: '1d',
-            limit: 7,
-            endTime: time
+      .klines({
+        symbol: market[i].symbol,
+        interval: '1d',
+        limit: 7,
+        endTime: time
+      })
+      .then(data => {
+        data.forEach(item => {
+          item.symbol = market[i].symbol,
+          item.quoteAsset = market[i].quoteAsset,
+          item.market = market[i].market
         })
-        .then(data => {
-          data.forEach(item => {
-            item.symbol = market[i].symbol,
-            item.quoteAsset = market[i].quoteAsset,
-            item.market = market[i].market
-          })
-            sevenDaysObject(data)
-        })
-        .catch(e => {
-            console.error(e);
-        });
+        sevenDaysObject(data)
+      })
+      .catch(e => {
+        console.error(e);
+      });
   }
 }
 
