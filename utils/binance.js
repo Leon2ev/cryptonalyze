@@ -23,6 +23,19 @@ const getAllPrices = async () => {
   }
 }
 
+// const startKline = async () => {
+//   try {
+//     const startKlineTime = await binanceRest.klines({
+//       symbol: 'BNBBTC',
+//       interval: '1d',
+//       limit: 1
+//     })
+//     return startKlineTime[0].openTime
+//   } catch (e) {
+//     console.error('Missing Connection with Binance', e)
+//   }
+// }
+
 //Receive all trading pairs. Filter and store them by market.
 let marketPairs
 const getMarket = async () => {
@@ -70,8 +83,9 @@ const startStreams = async (callback) => {
 const filterStreamData = (stream) => {
   if (stream.eventType === 'kline') {
     getKlineStartTime(stream)
-  } else if (marketsArray.length > 1 && stream.eventType === 'trade') {
+  } else if (stream.eventType === 'trade') {
     marketsArray.forEach(item => {
+      console.log(item)
       if (item.symbol === stream.symbol) {
         const tradeCost = stream.price * stream.quantity
         if (tradeCost > item.coeficient) {
@@ -86,11 +100,11 @@ const filterStreamData = (stream) => {
 let newKlineStartTime
 const getKlineStartTime = (stream) => {
   if (newKlineStartTime === undefined) {
-    newKlineStartTime = stream.kline.startTime;
-    getKlines(newKlineStartTime)
+    newKlineStartTime = stream.kline.startTime - 1
+    getKlines(marketPairs, newKlineStartTime)
   } else if (newKlineStartTime < stream.kline.startTime) {
-    newKlineStartTime = stream.kline.startTime
-    getKlines(newKlineStartTime)
+    newKlineStartTime = stream.kline.startTime - 1
+    getKlines(marketPairs, newKlineStartTime)
   }
 }
 
@@ -103,25 +117,27 @@ const startApp = () => {
 Request kline object for each pair on the selected market and period.
 Add symbol to each object.
 */
-const getKlines = async (time) => {
-  const market = await getMarket()
-  for (const pair of market) {
-    try {
-      const data = await binanceRest.klines({
-        symbol: pair.symbol,
-        interval: '1d',
-        limit: 7,
-        endTime: time - 1
-      })
-      data.forEach(item => {
-        item.symbol = pair.symbol,
-        item.quoteAsset = pair.quoteAsset,
-        item.market = pair.market
-      })
-      sevenDaysObject(data)
-    } catch (e) {
-      console.error(e)
-    }
+
+const getKlines = (market, time) => {
+  for (let i = 0; i < market.length; i++) {
+    binanceRest
+        .klines({
+            symbol: market[i].symbol,
+            interval: '1d',
+            limit: 7,
+            endTime: time
+        })
+        .then(data => {
+          data.forEach(item => {
+            item.symbol = market[i].symbol,
+            item.quoteAsset = market[i].quoteAsset,
+            item.market = market[i].market
+          })
+            sevenDaysObject(data)
+        })
+        .catch(e => {
+            console.error(e);
+        });
   }
 }
 
