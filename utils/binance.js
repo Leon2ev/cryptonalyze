@@ -23,19 +23,6 @@ const getAllPrices = async () => {
   }
 }
 
-// const startKline = async () => {
-//   try {
-//     const startKlineTime = await binanceRest.klines({
-//       symbol: 'BNBBTC',
-//       interval: '1d',
-//       limit: 1
-//     })
-//     return startKlineTime[0].openTime
-//   } catch (e) {
-//     console.error('Missing Connection with Binance', e)
-//   }
-// }
-
 //Receive all trading pairs. Filter and store them by market.
 let marketPairs
 const getMarket = async () => {
@@ -83,11 +70,12 @@ const startStreams = async (callback) => {
 const filterStreamData = (stream) => {
   if (stream.eventType === 'kline') {
     getKlineStartTime(stream)
+    customStreamKlineObject(stream)
   } else if (stream.eventType === 'trade') {
     marketsArray.forEach(item => {
       if (item.symbol === stream.symbol) {
         const tradeCost = stream.price * stream.quantity
-        if (tradeCost > 50000) {
+        if (tradeCost > 30000) {
           sendTelegramMessage(stream, item, tradeCost)
         }
       }
@@ -95,14 +83,40 @@ const filterStreamData = (stream) => {
   }
 }
 
+const customStreamKlineObject = ({kline}) => {
+  const array = marketsArray
+  array.forEach(pair => {
+    if (pair.symbol === kline.symbol) {
+      pair.symbol = kline.symbol
+      pair.weekVolumeQuote = parseFloat(pair.weekVolumeQuote)
+      pair.weekVolumeTotal = parseFloat(pair.weekVolumeTotal)
+      pair.weekTakerVolumeQuote = parseFloat(pair.weekTakerVolumeQuote)
+      pair.weekVolumeQuote += parseFloat(kline.quoteVolume)
+      pair.weekVolumeTotal += parseFloat(kline.volume)
+      pair.weekTakerVolumeQuote += parseFloat(kline.quoteVolumeActive)
+      createCustomObject(pair)
+    }
+  })
+
+  // const symbol = kline.symbol
+  // const quoteVolume = parseFloat(kline.quoteVolume)
+  // const volume = parseFloat(kline.volume)
+  // const quoteVolumeTaker = parseFloat(kline.quoteVolumeActive)
+  // return {
+  //   symbol,
+  //   quoteVolume,
+  //   volume,
+  //   quoteVolumeTaker
+  // }
+}
+
 //Check if new kline is open to calculate privious kline endTime.
 let endTimeForKlines
 const getKlineStartTime = async ({kline}) => {
-  const market = await getMarket()
   if (endTimeForKlines === undefined || (endTimeForKlines + 1) < kline.startTime) {
     endTimeForKlines = kline.startTime - 1
     console.log(endTimeForKlines)
-    getKlines(market, endTimeForKlines)
+    getKlines(marketPairs, endTimeForKlines)
   }
 }
 
@@ -189,10 +203,18 @@ received, add data to market array and empy buffer.
 let bufferMarketArray = []
 let marketsArray = []
 const addObjectToArray = (object) => {
-  bufferMarketArray.push(object)
-  if (marketPairs.length === bufferMarketArray.length) {
-    marketsArray = [...bufferMarketArray]
-    bufferMarketArray = []
+  if (marketsArray.length === marketPairs.length) {
+    marketsArray.forEach(pair => {
+      if (pair.symbol === object.symbol) {
+        pair = object
+      }
+    })
+  } else {
+    bufferMarketArray.push(object)
+    if (marketPairs.length === bufferMarketArray.length) {
+      marketsArray = [...bufferMarketArray]
+      bufferMarketArray = []
+    }
   }
 }
 
