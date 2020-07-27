@@ -65,7 +65,7 @@ const streamsArray = async () => {
   const streamsArray = []
   market.forEach(pair => {
     const tradeStream = streams.trade(pair.symbol)
-    const klineStream = streams.kline(pair.symbol, '1d')
+    const klineStream = streams.kline(pair.symbol, '5m')
     streamsArray.push(tradeStream, klineStream)
   })
   return streamsArray
@@ -87,7 +87,7 @@ const filterStreamData = (stream) => {
     marketsArray.forEach(item => {
       if (item.symbol === stream.symbol) {
         const tradeCost = stream.price * stream.quantity
-        if (tradeCost > item.coeficient) {
+        if (tradeCost > 50000) {
           sendTelegramMessage(stream, item, tradeCost)
         }
       }
@@ -95,12 +95,13 @@ const filterStreamData = (stream) => {
   }
 }
 
-let endTimeForKlines
 //Check if new kline is open to calculate privious kline endTime.
+let endTimeForKlines
 const getKlineStartTime = async ({kline}) => {
   const market = await getMarket()
-  if (endTimeForKlines === undefined || endTimeForKlines < kline.startTime) {
+  if (endTimeForKlines === undefined || (endTimeForKlines + 1) < kline.startTime) {
     endTimeForKlines = kline.startTime - 1
+    console.log(endTimeForKlines)
     getKlines(market, endTimeForKlines)
   }
 }
@@ -120,7 +121,7 @@ const getKlines = (market, time) => {
     binanceRest
       .klines({
         symbol: market[i].symbol,
-        interval: '1d',
+        interval: '5m',
         limit: 7,
         endTime: time
       })
