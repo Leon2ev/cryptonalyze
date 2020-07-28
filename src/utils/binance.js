@@ -73,7 +73,7 @@ const filterStreamData = (stream) => {
     getKlineStartTime(stream)
     customStreamKlineObject(stream)
   } else if (stream.eventType === 'trade') {
-    newArray.forEach(item => {
+    actualDataArray.forEach(item => {
       if (item.symbol === stream.symbol) {
         const tradeCost = stream.price * stream.quantity
         if (tradeCost > item.coeficient) {
@@ -116,7 +116,7 @@ const customStreamKlineObject = ({kline}) => {
     weekTakerVolumeQuote
   }
 
-  createCustomObject(object, testArray)
+  createCustomObject(object, addToArrayOrUpdateIfExist)
 }
 
 //Check if new kline is open to calculate privious kline endTime.
@@ -221,10 +221,10 @@ const addObjectToArray = (object) => {
 Create an array that stores objects with last available data. Update existing
 object if new data is comming.
 */
-let newArray = []
-const testArray = (object) => {
-  if (newArray.some(pair => pair.symbol === object.symbol)) {
-    newArray.forEach(pair => {
+let actualDataArray = []
+const addToArrayOrUpdateIfExist = (object) => {
+  if (actualDataArray.some(pair => pair.symbol === object.symbol)) {
+    actualDataArray.forEach(pair => {
       if (pair.symbol === object.symbol) {
         pair.coeficient = object.coeficient
         pair.weekVolumeQuote = object.weekVolumeQuote
@@ -233,7 +233,7 @@ const testArray = (object) => {
       }
     })
   } else if (object != undefined) {
-    newArray.push(object)
+    actualDataArray.push(object)
   }
 }
 
