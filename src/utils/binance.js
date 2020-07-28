@@ -47,7 +47,7 @@ const combineArrays = (...args) => {
   return array
 }
 
-//Create array streams from market for use in @onCombinedStream
+//Creacte stream string for each pair on the market and store it inside an array.
 const streamsArray = async () => {
   const market = await getMarket()
   const streamsArray = []
@@ -59,7 +59,7 @@ const streamsArray = async () => {
   return streamsArray
 }
 
-//Run trade streams for each pair from selected market.
+//Receive array of streams and run stream for each item from an array.
 const startStreams = async (callback) => {
   console.log('Streams are started')
   const combinedStreams = await streamsArray()
@@ -84,6 +84,7 @@ const filterStreamData = (stream) => {
   }
 }
 
+//Add incomming stream data to an existing seven days kline object.
 const customStreamKlineObject = ({kline}) => {
   const array = marketsArray
   let symbol
@@ -136,7 +137,6 @@ const startApp = () => {
 Request kline object for each pair on the selected market and period.
 Add symbol to each object.
 */
-
 const getKlines = (market, time) => {
   for (let i = 0; i < market.length; i++) {
     binanceRest
@@ -160,7 +160,7 @@ const getKlines = (market, time) => {
   }
 }
 
-//Create one 7 day object from 7 single day objects.
+//Create one object by adding seven single day objects to each other.
 const sevenDaysObject = (data) => {
 
   let symbol
@@ -190,7 +190,7 @@ const sevenDaysObject = (data) => {
   createCustomObject(object, addObjectToArray)
 }
 
-//Calculate custom variables and add then to 7day kline object.
+//Customize seven days object.
 const createCustomObject = (data, callback) => {
   const weekAveragePrice = data.weekVolumeQuote / data.weekVolumeTotal
   const balance = 2 * data.weekTakerVolumeQuote - data.weekVolumeQuote
@@ -217,6 +217,10 @@ const addObjectToArray = (object) => {
   }
 }
 
+/**
+Create an array that stores objects with last available data. Update existing
+object if new data is comming.
+*/
 let newArray = []
 const testArray = (object) => {
   if (newArray.some(pair => pair.symbol === object.symbol)) {
