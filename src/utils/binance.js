@@ -226,13 +226,8 @@ const testArray = (object) => {
   if (newArray.some(pair => pair.symbol === object.symbol)) {
     newArray.forEach(pair => {
       if (pair.symbol === object.symbol) {
-        pair.symbol = object.symbol
-        pair.quoteAsset = object.quoteAsset
-        pair.market = object.market
         pair.coeficient = object.coeficient
         pair.weekVolumeQuote = object.weekVolumeQuote
-        pair.weekVolumeTotal = object.weekVolumeTotal
-        pair.weekTakerVolumeQuote = object.weekTakerVolumeQuote
         pair.weekAveragePrice = object.weekAveragePrice
         pair.balance = object.balance
       }
