@@ -14,22 +14,13 @@ const binanceRest = new api.BinanceRest({
 });
 const streams = binanceWS.streams;
 
-//Get prices for all pairs from Binance
-const getAllPrices = async () => {
-  try {
-    return await binanceRest.allPrices()
-  } catch (e) {
-    console.error('Missing Connection with Binance', e)
-  }
-}
-
 //Receive all trading pairs. Filter and store them by market.
 let marketPairs
 const getMarket = async () => {
   try {
-    const data = await getAllPrices()
+    const data = await binanceRest.allPrices()
     const market = await marketFilter(data)
-    const markets = await combineArrays(market.usdtPairs);
+    const markets = await combineArrays(market.btcPairs);
     // marketPairs = [markets[0], markets[1]]
     marketPairs = markets
     return marketPairs
