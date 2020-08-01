@@ -86,16 +86,12 @@ const customStreamKlineObject = ({kline}) => {
   let weekTakerVolumeQuote = 0
   array.forEach(pair => {
     if (pair.symbol === kline.symbol) {
-      pair.weekVolumeQuote = parseFloat(pair.weekVolumeQuote)
-      pair.weekVolumeTotal = parseFloat(pair.weekVolumeTotal)
-      pair.weekTakerVolumeQuote = parseFloat(pair.weekTakerVolumeQuote)
-
       symbol = pair.symbol
       quoteAsset= pair.quoteAsset
       market = pair.market
-      weekVolumeQuote = pair.weekVolumeQuote + parseFloat(kline.quoteVolume)
-      weekVolumeTotal = pair.weekVolumeTotal + parseFloat(kline.volume)
-      weekTakerVolumeQuote = pair.weekTakerVolumeQuote + parseFloat(kline.quoteVolumeActive)
+      weekVolumeQuote = parseFloat(pair.weekVolumeQuote) + parseFloat(kline.quoteVolume)
+      weekVolumeTotal = parseFloat(pair.weekVolumeTotal) + parseFloat(kline.volume)
+      weekTakerVolumeQuote = parseFloat(pair.weekTakerVolumeQuote) + parseFloat(kline.quoteVolumeActive)
     }
   })
   const object = {
