@@ -62,12 +62,12 @@ const startStreams = async (callback) => {
 const filterStreamData = (stream) => {
   if (stream.eventType === 'kline') {
     getKlineStartTime(stream)
-    customStreamKlineObject(stream)
+    customizeKlineStreamObject(stream)
   } else if (stream.eventType === 'trade') {
     actualDataArray.forEach(item => {
       if (item.symbol === stream.symbol) {
         const tradeCost = stream.price * stream.quantity
-        if (tradeCost > item.coeficient) {
+        if (tradeCost > 0.3) {
           sendTelegramMessage(stream, item, tradeCost)
         }
       }
@@ -75,8 +75,27 @@ const filterStreamData = (stream) => {
   }
 }
 
+const customizeKlineStreamObject = ({kline}) => {
+  const object = {
+    openTime: kline.startTime,
+    open: kline.open,
+    high: kline.high,
+    low: kline.low,
+    close: kline.close,
+    volume: kline.volume,
+    closeTime: kline.endTime,
+    quoteAssetVolume: kline.quoteVolume,
+    trades: kline.trades,
+    takerBaseAssetVolume: kline.volumeActive,
+    takerQuoteAssetVolume: kline.quoteVolumeActive,
+    ignored: kline.ignored,
+    symbol: kline.symbol
+  }
+  customStreamKlineObject(object)
+}
+
 //Add incomming stream data to an existing seven days kline object.
-const customStreamKlineObject = ({kline}) => {
+const customStreamKlineObject = (object) => {
   const array = marketsArray
   let symbol
   let quoteAsset
@@ -85,16 +104,16 @@ const customStreamKlineObject = ({kline}) => {
   let weekVolumeTotal = 0;
   let weekTakerVolumeQuote = 0
   array.forEach(pair => {
-    if (pair.symbol === kline.symbol) {
+    if (pair.symbol === object.symbol) {
       symbol = pair.symbol
-      quoteAsset= pair.quoteAsset
+      quoteAsset = pair.quoteAsset
       market = pair.market
-      weekVolumeQuote = parseFloat(pair.weekVolumeQuote) + parseFloat(kline.quoteVolume)
-      weekVolumeTotal = parseFloat(pair.weekVolumeTotal) + parseFloat(kline.volume)
-      weekTakerVolumeQuote = parseFloat(pair.weekTakerVolumeQuote) + parseFloat(kline.quoteVolumeActive)
+      weekVolumeQuote = parseFloat(pair.weekVolumeQuote) + parseFloat(object.quoteAssetVolume)
+      weekVolumeTotal = parseFloat(pair.weekVolumeTotal) + parseFloat(object.volume)
+      weekTakerVolumeQuote = parseFloat(pair.weekTakerVolumeQuote) + parseFloat(object.takerQuoteAssetVolume)
     }
   })
-  const object = {
+  const newObject = {
     symbol,
     quoteAsset,
     market,
@@ -103,7 +122,7 @@ const customStreamKlineObject = ({kline}) => {
     weekTakerVolumeQuote
   }
 
-  createCustomObject(object, addToArrayOrUpdateIfExist)
+  createCustomObject(newObject, addToArrayOrUpdateIfExist)
 }
 
 //Check if new kline is open to calculate privious kline endTime.
