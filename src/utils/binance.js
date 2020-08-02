@@ -59,20 +59,23 @@ const startStreams = async (callback) => {
   })
 }
 
-const filterStreamData = (stream) => {
+const splitStreams = (stream) => {
   if (stream.eventType === 'kline') {
-    getKlineStartTime(stream)
     customizeKlineStreamObject(stream)
   } else if (stream.eventType === 'trade') {
-    actualDataArray.forEach(item => {
-      if (item.symbol === stream.symbol) {
-        const tradeCost = stream.price * stream.quantity
-        if (tradeCost > 0.3) {
-          sendTelegramMessage(stream, item, tradeCost)
-        }
-      }
-    })
+    filterTradingData(stream)
   }
+}
+
+const filterTradingData = (stream) => {
+  actualDataArray.forEach(item => {
+    if (item.symbol === stream.symbol) {
+      const tradeCost = stream.price * stream.quantity
+      if (tradeCost > 0.3) {
+        sendTelegramMessage(stream, item, tradeCost)
+      }
+    }
+  })
 }
 
 const customizeKlineStreamObject = ({kline}) => {
@@ -90,6 +93,16 @@ const customizeKlineStreamObject = ({kline}) => {
     takerQuoteAssetVolume: kline.quoteVolumeActive,
     ignored: kline.ignored,
     symbol: kline.symbol
+  }
+  getKlineStartTime(object)
+}
+
+//Check if new kline is open to calculate privious kline endTime.
+let endTimeForKlines
+const getKlineStartTime = (object) => {
+  if (endTimeForKlines === undefined || (endTimeForKlines + 1) < object.openTime) {
+    endTimeForKlines = object.openTime - 1
+    getKlines(marketPairs, endTimeForKlines)
   }
   customStreamKlineObject(object)
 }
@@ -125,18 +138,9 @@ const customStreamKlineObject = (object) => {
   createCustomObject(newObject, addToArrayOrUpdateIfExist)
 }
 
-//Check if new kline is open to calculate privious kline endTime.
-let endTimeForKlines
-const getKlineStartTime = async ({kline}) => {
-  if (endTimeForKlines === undefined || (endTimeForKlines + 1) < kline.startTime) {
-    endTimeForKlines = kline.startTime - 1
-    getKlines(marketPairs, endTimeForKlines)
-  }
-}
-
 // App starter
 const startApp = () => {
-  startStreams(filterStreamData)
+  startStreams(splitStreams)
 }
 
 /**
