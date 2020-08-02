@@ -1,7 +1,7 @@
 const api = require('binance')
 const sendTelegramMessage = require('../telegram')
 const createCustomObject = require('./data-for-period')
-const { getMarket, getKlines, test } = require('./rest')
+const { getMarket, getKlines, getMarketsArray } = require('./rest')
 
 const binanceWS = new api.BinanceWS(true);
 const streams = binanceWS.streams;
@@ -82,7 +82,7 @@ const getKlineStartTime = (object) => {
 
 //Add incomming stream data to an existing seven days kline object.
 const customStreamKlineObject = async (object) => {
-  const array = await test()
+  const array = await getMarketsArray()
   let symbol
   let quoteAsset
   let market

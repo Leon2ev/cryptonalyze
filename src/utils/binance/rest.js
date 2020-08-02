@@ -96,18 +96,18 @@ const sevenDaysObject = (data) => {
 Buffer array get custom trading pair objects one by one. When all objects
 received, add data to market array and empy buffer.
 */
-let bufferMarketArray = []
+let bufferMarketsArray = []
 let marketsArray = []
 const addObjectToArray = (object) => {
-  bufferMarketArray.push(object)
-  if (marketPairs.length === bufferMarketArray.length) {
-    marketsArray = [...bufferMarketArray]
-    bufferMarketArray = []
+  bufferMarketsArray.push(object)
+  if (marketPairs.length === bufferMarketsArray.length) {
+    marketsArray = [...bufferMarketsArray]
+    bufferMarketsArray = []
   }
 }
 
-const test = async () => {
+const getMarketsArray = async () => {
   return marketsArray
 }
 
-module.exports = { getMarket, getKlines, test }
+module.exports = { getMarket, getKlines, getMarketsArray }
