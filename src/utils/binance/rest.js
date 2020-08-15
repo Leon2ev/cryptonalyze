@@ -16,8 +16,8 @@ let marketPairs
 const getMarket = async () => {
   try {
     const data = await binanceRest.allPrices()
-    const market = await marketFilter(data)
-    const markets = await combineArrays(market.btcPairs);
+    const market = marketFilter(data)
+    const markets = combineArrays(market.btcPairs);
     // marketPairs = [markets[0], markets[1]]
     marketPairs = markets
     return marketPairs
@@ -81,13 +81,14 @@ const sevenDaysObject = (data) => {
     weekTakerVolumeQuote += parseFloat(day.takerQuoteAssetVolume)
   })
 
-  const object = {symbol,
-                  quoteAsset,
-                  market,
-                  weekVolumeQuote,
-                  weekVolumeTotal,
-                  weekTakerVolumeQuote
-                  }
+  const object = {
+    symbol,
+    quoteAsset,
+    market,
+    weekVolumeQuote,
+    weekVolumeTotal,
+    weekTakerVolumeQuote
+  }
 
   createCustomObject(object, addObjectToArray)
 }
