@@ -22,6 +22,7 @@ const marketFilter = (data) => {
   const usdsPairs = [];
   const ngnPairs = [];
   const audPairs = [];
+  const daiPairs = [];
   for (let i = 0; i < data.length; i++) {
     if (data[i].symbol.slice(-3) === 'BTC') {
       const object = splitMarketSymbolOne(data[i].symbol)
@@ -89,6 +90,9 @@ const marketFilter = (data) => {
     } else if (data[i].symbol.slice(-3) === 'AUD') {
       const object = splitMarketSymbolOne(data[i].symbol)
       audPairs.push(object);
+    } else if (data[i].symbol.slice(-3) === 'DAI') {
+      const object = splitMarketSymbolOne(data[i].symbol)
+      daiPairs.push(object);
     } else {
       console.log(`New market is added ${data[i].symbol}`)
     }
@@ -113,7 +117,8 @@ const marketFilter = (data) => {
     tryPairs,
     zarPairs,
     uahPairs,
-    audPairs
+    audPairs,
+    daiPairs
   }
 }
 
