@@ -93,7 +93,7 @@ const sevenDaysObject = (data) => {
 
 /**
 Buffer array get custom trading pair objects one by one. When all objects
-received, add data to market array and empy buffer.
+received, add data to market array and empty buffer.
 */
 let bufferMarketsArray = [];
 let marketsArray = [];

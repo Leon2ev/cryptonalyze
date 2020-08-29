@@ -6,13 +6,13 @@ const { getMarket, getKlines, getMarketsArray } = require('./rest');
 const binanceWS = new api.BinanceWS(true);
 const streams = binanceWS.streams;
 
-//Creacte stream string for each pair on the market and store it inside an array.
-let market;
+//Creacte stream string for each pair on the selectedMarkets and store it inside an array.
+let selectedMarkets;
 const streamsArray = async () => {
   try {
-    market = await getMarket();
+    selectedMarkets = await getMarket();
     const streamsArray = [];
-    market.forEach(pair => {
+    selectedMarkets.forEach(pair => {
       const tradeStream = streams.trade(pair.symbol);
       const klineStream = streams.kline(pair.symbol, '1d');
       streamsArray.push(tradeStream, klineStream);
@@ -75,7 +75,7 @@ let endTimeForKlines;
 const getKlineStartTime = (object) => {
   if (endTimeForKlines === undefined || (endTimeForKlines + 1) < object.openTime) {
     endTimeForKlines = object.openTime - 1;
-    getKlines(market, endTimeForKlines);
+    getKlines(selectedMarkets, endTimeForKlines);
   }
   customStreamKlineObject(object);
 };
