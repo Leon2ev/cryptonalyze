@@ -1,4 +1,5 @@
 const api = require('binance');
+const { interval, limit } = require('./vars-for-api');
 const sendTelegramMessage = require('../telegram');
 const createCustomObject = require('./data-for-period');
 const { getMarket, getKlines, getMarketsArray } = require('./rest');
@@ -14,7 +15,7 @@ const streamsArray = async () => {
     const streamsArray = [];
     selectedMarkets.forEach(pair => {
       const tradeStream = streams.trade(pair.symbol);
-      const klineStream = streams.kline(pair.symbol, '1d');
+      const klineStream = streams.kline(pair.symbol, interval);
       streamsArray.push(tradeStream, klineStream);
     });
     return streamsArray;
@@ -75,7 +76,7 @@ let endTimeForKlines;
 const getKlineStartTime = (object) => {
   if (endTimeForKlines === undefined || (endTimeForKlines + 1) < object.openTime) {
     endTimeForKlines = object.openTime - 1;
-    getKlines(selectedMarkets, endTimeForKlines);
+    getKlines(selectedMarkets, endTimeForKlines, interval, limit);
   }
   customStreamKlineObject(object);
 };

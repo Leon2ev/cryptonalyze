@@ -37,14 +37,14 @@ const mergeArrays = (...args) => {
 Request kline object for each pair on the selected market and period.
 Add symbol to each object.
 */
-const getKlines = (market, time) => {
+const getKlines = (market, endTime, interval, limit) => {
   for (let i = 0; i < market.length; i++) {
     binanceRest
       .klines({
         symbol: market[i].symbol,
-        interval: '1d',
-        limit: 7,
-        endTime: time
+        interval,
+        limit,
+        endTime
       })
       .then(data => {
         data.forEach(item => {
