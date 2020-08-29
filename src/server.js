@@ -4,8 +4,8 @@ require('dotenv').config();
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
-const startApp = require('./utils/binance/websocket')
-const port = process.env.PORT;
+const startApp = require('./utils/binance/websocket');
+const port = process.env.PORT || 8000;
 
 startApp()
 
