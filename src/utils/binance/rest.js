@@ -1,5 +1,5 @@
 const api = require('binance');
-const marketFilter = require('./market-filter');
+const filterByMarket = require('./market-filter');
 const createCustomObject = require('./data-for-period');
 
 const binanceRest = new api.BinanceRest({
@@ -16,8 +16,8 @@ let selectedMarkets;
 const getMarket = async () => {
   try {
     const data = await binanceRest.allPrices();
-    const markets = marketFilter(data);
-    selectedMarkets = combineArrays(markets.btcPairs);
+    const markets = filterByMarket(data);
+    selectedMarkets = mergeArrays(markets.btcPairs);
     return selectedMarkets;
   } catch (e) {
     console.error('No data is received', e);
@@ -25,7 +25,7 @@ const getMarket = async () => {
 };
 
 //Create one array from selected markets.
-const combineArrays = (...args) => {
+const mergeArrays = (...args) => {
   const array = [];
   args.forEach(arg => {
     array.push(...arg);

@@ -1,5 +1,5 @@
 //Filter allPairs pairs from Binance and group them by the market
-const marketFilter = (data) => {
+const filterByMarket = (data) => {
   const btcPairs = [];
   const bnbPairs = [];
   const ethPairs = [];
@@ -139,4 +139,4 @@ const splitMarketSymbolTwo = (data) => {
   return {symbol, quoteAsset, market};
 };
 
-module.exports = marketFilter;
+module.exports = filterByMarket;
