@@ -6,7 +6,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const token = process.env.TELEGRAM_TOKEN;
 const chat_id = process.env.TELEGRAM_CHAT_ID;
 const bot = new TelegramBot(token, {polling: true});
-const url = 'https://www.binance.com/en/trade/'
+const url = 'https://www.binance.com/en/trade/';
 
 //Icons for telegram message
 const upGraph = String.fromCodePoint(0x1F4C8);
@@ -30,7 +30,7 @@ const sendTelegramMessage = (stream, item, tradeCost) => {
     `${price}Volume: *${item.weekVolumeQuote}*\n`+
     `${price}Balance: *${item.balance}*\n`+
     `--------------------\n`+
-    `${upGraph} [Link to Binance](${url}${item.quoteAsset}_${item.market})`
+    `${upGraph} [Link to Binance](${url}${item.quoteAsset}_${item.market})`;
     bot.sendMessage(chat_id, buyMsgTemplate, {parse_mode: 'Markdown',
                                               disable_web_page_preview: true });
 
@@ -47,10 +47,10 @@ const sendTelegramMessage = (stream, item, tradeCost) => {
     `${price}Volume: *${item.weekVolumeQuote}*\n`+
     `${price}Balance: *${item.balance}*\n`+
     `--------------------\n`+
-    `${downGraph} [Link to Binance](${url}${item.quoteAsset}_${item.market})`
+    `${downGraph} [Link to Binance](${url}${item.quoteAsset}_${item.market})`;
     bot.sendMessage(chat_id, sellMsgTemplate, { parse_mode: 'Markdown',
                                                 disable_web_page_preview: true });
   }
-}
+};
 
-module.exports = sendTelegramMessage
+module.exports = sendTelegramMessage;

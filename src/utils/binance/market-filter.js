@@ -25,76 +25,76 @@ const marketFilter = (data) => {
   const daiPairs = [];
   for (let i = 0; i < data.length; i++) {
     if (data[i].symbol.slice(-3) === 'BTC') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       btcPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'ETH') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       ethPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'BNB') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       bnbPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'TRX') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       trxPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'XRP') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       xrpPairs.push(object);
     } else if (data[i].symbol.slice(-4) === 'USDT') {
-      const object = splitMarketSymbolTwo(data[i].symbol)
+      const object = splitMarketSymbolTwo(data[i].symbol);
       usdtPairs.push(object);
     } else if (data[i].symbol.slice(-4) === 'BUSD') {
-      const object = splitMarketSymbolTwo(data[i].symbol)
+      const object = splitMarketSymbolTwo(data[i].symbol);
       busdPairs.push(object);
     } else if (data[i].symbol.slice(-4) === 'BIDR') {
-      const object = splitMarketSymbolTwo(data[i].symbol)
+      const object = splitMarketSymbolTwo(data[i].symbol);
       bidrPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'UAH') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       uahPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'GBP') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       gbpPairs.push(object);
     } else if (data[i].symbol.slice(-4) === 'IDRT') {
-      const object = splitMarketSymbolTwo(data[i].symbol)
+      const object = splitMarketSymbolTwo(data[i].symbol);
       idrtPairs.push(object);
     } else if (data[i].symbol.slice(-4) === 'BKRW') {
-      const object = splitMarketSymbolTwo(data[i].symbol)
+      const object = splitMarketSymbolTwo(data[i].symbol);
       bkrwPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'ZAR') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       zarPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'EUR') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       eurPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'RUB') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       rubPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'TRY') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       tryPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'PAX') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       paxPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'USD') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       usdPairs.push(object);
     } else if (data[i].symbol.slice(-4) === 'USDC') {
-      const object = splitMarketSymbolTwo(data[i].symbol)
+      const object = splitMarketSymbolTwo(data[i].symbol);
       usdcPairs.push(object);
     } else if (data[i].symbol.slice(-4) === 'USDS') {
-      const object = splitMarketSymbolTwo(data[i].symbol)
+      const object = splitMarketSymbolTwo(data[i].symbol);
       usdsPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'NGN') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       ngnPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'AUD') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       audPairs.push(object);
     } else if (data[i].symbol.slice(-3) === 'DAI') {
-      const object = splitMarketSymbolOne(data[i].symbol)
+      const object = splitMarketSymbolOne(data[i].symbol);
       daiPairs.push(object);
     } else {
-      console.log(`New market is added ${data[i].symbol}`)
+      console.log(`New market is added ${data[i].symbol}`);
     }
   }
   return {
@@ -119,8 +119,8 @@ const marketFilter = (data) => {
     uahPairs,
     audPairs,
     daiPairs
-  }
-}
+  };
+};
 
 //Split single symbol string on market and quote asset and return it as object.
 const splitMarketSymbolOne = (data) => {
@@ -128,15 +128,15 @@ const splitMarketSymbolOne = (data) => {
   const quoteAsset = data.slice(0, -3);
   const market = data.slice(-3);
 
-  return {symbol, quoteAsset, market}
-}
+  return {symbol, quoteAsset, market};
+};
 
 const splitMarketSymbolTwo = (data) => {
   const symbol = data;
   const quoteAsset = data.slice(0, -4);
   const market = data.slice(-4);
 
-  return {symbol, quoteAsset, market}
-}
+  return {symbol, quoteAsset, market};
+};
 
-module.exports = marketFilter
+module.exports = marketFilter;
