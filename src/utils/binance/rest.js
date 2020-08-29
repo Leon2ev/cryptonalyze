@@ -12,15 +12,13 @@ const binanceRest = new api.BinanceRest({
 });
 
 //Receive all trading pairs. Filter and store them by market.
-let marketPairs;
+let selectedMarkets;
 const getMarket = async () => {
   try {
     const data = await binanceRest.allPrices();
-    const market = marketFilter(data);
-    const markets = combineArrays(market.btcPairs);
-    // marketPairs = [markets[0], markets[1]]
-    marketPairs = markets;
-    return marketPairs;
+    const markets = marketFilter(data);
+    selectedMarkets = combineArrays(markets.btcPairs);
+    return selectedMarkets;
   } catch (e) {
     console.error('No data is received', e);
   }
@@ -101,7 +99,7 @@ let bufferMarketsArray = [];
 let marketsArray = [];
 const addObjectToArray = (object) => {
   bufferMarketsArray.push(object);
-  if (marketPairs.length === bufferMarketsArray.length) {
+  if (selectedMarkets.length === bufferMarketsArray.length) {
     marketsArray = [...bufferMarketsArray];
     bufferMarketsArray = [];
   }
