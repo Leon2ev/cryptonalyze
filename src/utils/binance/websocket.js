@@ -82,8 +82,8 @@ const getKlineStartTime = (object) => {
 };
 
 //Add incomming stream data to an existing seven days kline object.
-const customStreamKlineObject = async (object) => {
-  const array = await getMarketsArray();
+const customStreamKlineObject = (object) => {
+  const array = getMarketsArray();
   let symbol;
   let quoteAsset;
   let market;

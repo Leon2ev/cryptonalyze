@@ -105,7 +105,7 @@ const addObjectToArray = (object) => {
   }
 };
 
-const getMarketsArray = async () => {
+const getMarketsArray = () => {
   return marketsArray;
 };
 
