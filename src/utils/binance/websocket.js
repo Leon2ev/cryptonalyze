@@ -3,6 +3,7 @@ const { interval, limit } = require('./vars-for-api');
 const sendTelegramMessage = require('../telegram');
 const createCustomObject = require('./data-for-period');
 const { getMarket, getKlines, getMarketsArray } = require('./rest');
+const signalFilter = require('./signal-filter');
 
 const binanceWS = new api.BinanceWS(true);
 const streams = binanceWS.streams;
@@ -45,7 +46,8 @@ const filterTradingData = (stream) => {
   actualDataArray.forEach(item => {
     if (item.symbol === stream.symbol) {
       const tradeCost = stream.price * stream.quantity;
-      if (tradeCost > item.coeficient && stream.price <= item.weekAveragePrice) {
+      const filtered = signalFilter(stream, item, tradeCost);
+      if (filtered === true) {
         sendTelegramMessage(stream, item, tradeCost);
       }
     }
