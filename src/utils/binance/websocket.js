@@ -45,7 +45,7 @@ const filterTradingData = (stream) => {
   actualDataArray.forEach(item => {
     if (item.symbol === stream.symbol) {
       const tradeCost = stream.price * stream.quantity;
-      if (tradeCost > item.coeficient) {
+      if (tradeCost > item.coeficient && stream.price <= item.weekAveragePrice) {
         sendTelegramMessage(stream, item, tradeCost);
       }
     }
