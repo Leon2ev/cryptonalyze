@@ -21,7 +21,7 @@ const sendTelegramMessage = (stream, item, tradeCost) => {
     const buyMsgTemplate =
     `${tick} *#${stream.symbol}* *BUY*\n`+
     `--------------------\n`+
-    `${price}Trade Cost: *${tradeCost.toFixed(2)} ${item.market}*\n`+
+    `${price}Trade Cost: *${tradeCost.toFixed(2)} ${item.quoteAsset}*\n`+
     `${price}Price: *${stream.price}*\n`+
     `--------------------\n`+
     `*Statistic for 7 days*\n`+
@@ -30,7 +30,7 @@ const sendTelegramMessage = (stream, item, tradeCost) => {
     `${price}Volume: *${item.weekVolumeQuote}*\n`+
     `${price}Balance: *${item.balance}*\n`+
     `--------------------\n`+
-    `${upGraph} [Link to Binance](${url}${item.quoteAsset}_${item.market})`;
+    `${upGraph} [Link to Binance](${url}${item.quoteAsset}_${item.quoteAsset})`;
     bot.sendMessage(chat_id, buyMsgTemplate, {parse_mode: 'Markdown',
                                               disable_web_page_preview: true });
 
@@ -38,7 +38,7 @@ const sendTelegramMessage = (stream, item, tradeCost) => {
     const sellMsgTemplate =
     `${cross} *#${stream.symbol}* *SELL*\n`+
     `--------------------\n`+
-    `${price}Trade Cost: *${tradeCost.toFixed(2)} ${item.market}*\n`+
+    `${price}Trade Cost: *${tradeCost.toFixed(2)} ${item.quoteAsset}*\n`+
     `${price}Price: *${stream.price}*\n`+
     `--------------------\n`+
     `*Statistic for 7 days*\n`+
@@ -47,7 +47,7 @@ const sendTelegramMessage = (stream, item, tradeCost) => {
     `${price}Volume: *${item.weekVolumeQuote}*\n`+
     `${price}Balance: *${item.balance}*\n`+
     `--------------------\n`+
-    `${downGraph} [Link to Binance](${url}${item.quoteAsset}_${item.market})`;
+    `${downGraph} [Link to Binance](${url}${item.quoteAsset}_${item.quoteAsset})`;
     bot.sendMessage(chat_id, sellMsgTemplate, { parse_mode: 'Markdown',
                                                 disable_web_page_preview: true });
   }

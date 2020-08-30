@@ -49,8 +49,8 @@ const getKlines = (market, endTime, interval, limit) => {
       .then(data => {
         data.forEach(item => {
           item.symbol = market[i].symbol,
-          item.quoteAsset = market[i].quoteAsset,
-          item.market = market[i].market;
+          item.baseAsset = market[i].baseAsset,
+          item.quoteAsset = market[i].quoteAsset;
         });
         sevenDaysObject(data);
       })
@@ -64,16 +64,16 @@ const getKlines = (market, endTime, interval, limit) => {
 const sevenDaysObject = (data) => {
 
   let symbol;
+  let baseAsset;
   let quoteAsset;
-  let market;
   let weekVolumeQuote = 0;
   let weekVolumeTotal = 0;
   let weekTakerVolumeQuote = 0;
 
   data.forEach(day => {
     symbol = day.symbol;
+    baseAsset = day.baseAsset;
     quoteAsset = day.quoteAsset;
-    market = day.market;
     weekVolumeQuote += parseFloat(day.quoteAssetVolume);
     weekVolumeTotal += parseFloat(day.volume);
     weekTakerVolumeQuote += parseFloat(day.takerQuoteAssetVolume);
@@ -81,8 +81,8 @@ const sevenDaysObject = (data) => {
 
   const object = {
     symbol,
+    baseAsset,
     quoteAsset,
-    market,
     weekVolumeQuote,
     weekVolumeTotal,
     weekTakerVolumeQuote

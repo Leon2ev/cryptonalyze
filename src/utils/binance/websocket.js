@@ -87,16 +87,16 @@ const getKlineStartTime = (object) => {
 const customStreamKlineObject = (object) => {
   const array = getMarketsArray();
   let symbol;
+  let baseAsset;
   let quoteAsset;
-  let market;
   let weekVolumeQuote = 0;
   let weekVolumeTotal = 0;
   let weekTakerVolumeQuote = 0;
   array.forEach(pair => {
     if (pair.symbol === object.symbol) {
       symbol = pair.symbol;
+      baseAsset = pair.baseAsset;
       quoteAsset = pair.quoteAsset;
-      market = pair.market;
       weekVolumeQuote = parseFloat(pair.weekVolumeQuote) + parseFloat(object.quoteAssetVolume);
       weekVolumeTotal = parseFloat(pair.weekVolumeTotal) + parseFloat(object.volume);
       weekTakerVolumeQuote = parseFloat(pair.weekTakerVolumeQuote) + parseFloat(object.takerQuoteAssetVolume);
@@ -104,8 +104,8 @@ const customStreamKlineObject = (object) => {
   });
   const newObject = {
     symbol,
+    baseAsset,
     quoteAsset,
-    market,
     weekVolumeQuote,
     weekVolumeTotal,
     weekTakerVolumeQuote

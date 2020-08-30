@@ -125,18 +125,18 @@ const filterByMarket = (data) => {
 //Split single symbol string on market and quote asset and return it as object.
 const splitMarketSymbolOne = (data) => {
   const symbol = data;
-  const quoteAsset = data.slice(0, -3);
-  const market = data.slice(-3);
+  const baseAsset = data.slice(0, -3);
+  const quoteAsset = data.slice(-3);
 
-  return {symbol, quoteAsset, market};
+  return {symbol, baseAsset, quoteAsset};
 };
 
 const splitMarketSymbolTwo = (data) => {
   const symbol = data;
-  const quoteAsset = data.slice(0, -4);
-  const market = data.slice(-4);
+  const baseAsset = data.slice(0, -4);
+  const quoteAsset = data.slice(-4);
 
-  return {symbol, quoteAsset, market};
+  return {symbol, baseAsset, quoteAsset};
 };
 
 module.exports = filterByMarket;
