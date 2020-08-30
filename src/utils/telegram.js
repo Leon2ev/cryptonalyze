@@ -30,7 +30,7 @@ const sendTelegramMessage = (stream, item, tradeCost) => {
     `${price}Volume: *${item.weekVolumeQuote}*\n`+
     `${price}Balance: *${item.balance}*\n`+
     `--------------------\n`+
-    `${upGraph} [Link to Binance](${url}${item.quoteAsset}_${item.quoteAsset})`;
+    `${upGraph} [Link to Binance](${url}${item.baseAsset}_${item.quoteAsset})`;
     bot.sendMessage(chat_id, buyMsgTemplate, {parse_mode: 'Markdown',
                                               disable_web_page_preview: true });
 
@@ -47,7 +47,7 @@ const sendTelegramMessage = (stream, item, tradeCost) => {
     `${price}Volume: *${item.weekVolumeQuote}*\n`+
     `${price}Balance: *${item.balance}*\n`+
     `--------------------\n`+
-    `${downGraph} [Link to Binance](${url}${item.quoteAsset}_${item.quoteAsset})`;
+    `${downGraph} [Link to Binance](${url}${item.baseAsset}_${item.quoteAsset})`;
     bot.sendMessage(chat_id, sellMsgTemplate, { parse_mode: 'Markdown',
                                                 disable_web_page_preview: true });
   }
